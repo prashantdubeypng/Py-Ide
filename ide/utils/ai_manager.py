@@ -156,63 +156,100 @@ class GeminiProvider(AIProvider):
 
     
     async def generate(self, prompt: str, context: Optional[str] = None) -> str:
-        """Generate response using Gemini API"""
-        try:
-            import httpx
-            
-            full_prompt = f"{context}\n\n{prompt}" if context else prompt
-            
-            payload = {
-                "contents": [{
-                    "parts": [{"text": full_prompt}]
-                }],
-                "generationConfig": {
-                    "temperature": self.temperature,
-                    "maxOutputTokens": self.max_tokens
-                }
-            }
-            
-            async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.post(
-                    f"{self.base_url}/{self.model}:generateContent?key={self.api_key}",
-                    json=payload
-                )
-                response.raise_for_status()
-                data = response.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        """Generate response using Gemini API with retry logic"""
+        max_retries = 3
+        base_delay = 2  # seconds
         
-        except ImportError:
-            logger.warning("httpx not installed, using sync fallback for Gemini")
-            return await self._sync_fallback(prompt, context)
-        except Exception as e:
-            logger.error(f"Gemini API error: {e}")
-            raise
-    
-    async def _sync_fallback(self, prompt: str, context: Optional[str] = None) -> str:
-        """Fallback using requests library if httpx unavailable"""
-        try:
-            import requests
-            
-            full_prompt = f"{context}\n\n{prompt}" if context else prompt
-            
-            response = requests.post(
-                f"{self.base_url}/{self.model}:generateContent?key={self.api_key}",
-                json={
-                    "contents": [{"parts": [{"text": full_prompt}]}],
+        for attempt in range(max_retries):
+            try:
+                import httpx
+                
+                full_prompt = f"{context}\n\n{prompt}" if context else prompt
+                
+                payload = {
+                    "contents": [{
+                        "parts": [{"text": full_prompt}]
+                    }],
                     "generationConfig": {
                         "temperature": self.temperature,
                         "maxOutputTokens": self.max_tokens
                     }
-                },
-                timeout=30
-            )
-            response.raise_for_status()
-            return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        except ImportError:
-            return "⚠️ httpx and requests not installed. Install with: pip install httpx requests"
-        except Exception as e:
-            logger.error(f"Gemini fallback error: {e}")
-            raise
+                }
+                
+                async with httpx.AsyncClient(timeout=60) as client:
+                    response = await client.post(
+                        f"{self.base_url}/{self.model}:generateContent?key={self.api_key}",
+                        json=payload
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            
+            except ImportError:
+                logger.warning("httpx not installed, using sync fallback for Gemini")
+                return await self._sync_fallback(prompt, context)
+            
+            except Exception as e:
+                error_str = str(e)
+                
+                # Handle rate limiting (429)
+                if "429" in error_str or "Too Many Requests" in error_str:
+                    if attempt < max_retries - 1:
+                        wait_time = base_delay * (2 ** attempt)  # Exponential backoff
+                        logger.warning(f"Rate limited (attempt {attempt + 1}/{max_retries}), waiting {wait_time}s...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        logger.error("Rate limit exceeded after all retries")
+                        raise Exception("❌ Rate limit exceeded. Please wait a moment and try again.")
+                
+                # Other errors
+                logger.error(f"Gemini API error: {e}")
+                raise
+    
+    async def _sync_fallback(self, prompt: str, context: Optional[str] = None) -> str:
+        """Fallback using requests library with retry logic"""
+        max_retries = 3
+        base_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                import requests
+                
+                full_prompt = f"{context}\n\n{prompt}" if context else prompt
+                
+                response = requests.post(
+                    f"{self.base_url}/{self.model}:generateContent?key={self.api_key}",
+                    json={
+                        "contents": [{"parts": [{"text": full_prompt}]}],
+                        "generationConfig": {
+                            "temperature": self.temperature,
+                            "maxOutputTokens": self.max_tokens
+                        }
+                    },
+                    timeout=60
+                )
+                response.raise_for_status()
+                return response.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+                
+            except ImportError:
+                return "⚠️ httpx and requests not installed. Install with: pip install httpx requests"
+            
+            except Exception as e:
+                error_str = str(e)
+                
+                # Handle rate limiting
+                if "429" in error_str or "Too Many Requests" in error_str:
+                    if attempt < max_retries - 1:
+                        wait_time = base_delay * (2 ** attempt)
+                        logger.warning(f"Rate limited (attempt {attempt + 1}/{max_retries}), waiting {wait_time}s...")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        raise Exception("❌ Rate limit exceeded. Please wait a moment and try again.")
+                
+                logger.error(f"Gemini fallback error: {e}")
+                raise
     
     def validate_key(self) -> bool:
         """Validate Gemini API key format"""
@@ -316,7 +353,8 @@ class AIManager:
         
         self.provider: Optional[AIProvider] = None
         self.cache = RequestCache(ttl_seconds=cache_ttl)
-        self.rate_limiter = RateLimiter(max_requests=10, window_seconds=60)
+        # More conservative rate limiting: 5 requests per minute
+        self.rate_limiter = RateLimiter(max_requests=5, window_seconds=60)
         
         self.request_queue: Queue = Queue()
         self.request_thread = None
@@ -346,8 +384,13 @@ class AIManager:
         try:
             api_key = self.secret_manager.get_secret(provider_name)
             
+            logger.debug(f"Attempting to initialize provider: {provider_name}")
+            logger.debug(f"API key found: {bool(api_key)}, Length: {len(api_key) if api_key else 0}")
+            
             if not api_key:
                 logger.warning(f"No API key found for provider: {provider_name}")
+                logger.info(f"Please configure API key in Settings. Provider: {provider_name}")
+                return False
                 return False
             
             if provider_name.lower() == "openai":
@@ -378,6 +421,10 @@ class AIManager:
         except Exception as e:
             logger.error(f"Failed to initialize AI provider: {e}")
             return False
+    
+    def is_provider_initialized(self) -> bool:
+        """Check if AI provider is initialized and ready"""
+        return self.provider is not None
     
     async def generate(
         self,

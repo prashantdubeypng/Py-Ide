@@ -23,13 +23,77 @@ class CodeExtractor:
             with open(file_path, "r", encoding="utf-8") as f:
                 source = f.read()
             
-            tree = ast.parse(source)
+            # Method 1: Try AST parsing (accurate but requires valid syntax)
+            try:
+                tree = ast.parse(source)
+                
+                for node in ast.walk(tree):
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == func_name:
+                        return ast.get_source_segment(source, node)
             
-            for node in ast.walk(tree):
-                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == func_name:
-                    return ast.get_source_segment(source, node)
+            except SyntaxError:
+                logger.warning(f"Syntax error in {file_path}, using regex fallback")
             
-            return None
+            # Method 2: Regex-based fallback (works with syntax errors)
+            import re
+            lines = source.split('\n')
+            
+            # Find function definition
+            func_start = None
+            func_indent = None
+            
+            for i, line in enumerate(lines):
+                # Match function definition
+                match = re.match(r'^(\s*)(def|async\s+def)\s+' + re.escape(func_name) + r'\s*\(', line)
+                if match:
+                    func_start = i
+                    func_indent = len(match.group(1))
+                    break
+            
+            if func_start is None:
+                logger.warning(f"Function {func_name} not found in {file_path}")
+                return None
+            
+            # Extract function body (all lines with greater indent or same indent decorators)
+            func_lines = []
+            i = func_start
+            
+            # Include decorators before function
+            j = func_start - 1
+            while j >= 0:
+                line = lines[j]
+                if line.strip().startswith('@'):
+                    func_start = j
+                    j -= 1
+                elif line.strip() == '':
+                    j -= 1
+                else:
+                    break
+            
+            # Extract function and body
+            for i in range(func_start, len(lines)):
+                line = lines[i]
+                
+                # Empty lines are included
+                if line.strip() == '':
+                    func_lines.append(line)
+                    continue
+                
+                # Check indentation
+                if i == func_start:
+                    # First line (def ...)
+                    func_lines.append(line)
+                else:
+                    # Body lines must have greater indentation
+                    line_indent = len(line) - len(line.lstrip())
+                    if line_indent > func_indent:
+                        func_lines.append(line)
+                    else:
+                        # Less or equal indent = function ended
+                        break
+            
+            return '\n'.join(func_lines) if func_lines else None
+            
         except Exception as e:
             logger.error(f"Failed to extract function {func_name} from {file_path}: {e}")
             return None

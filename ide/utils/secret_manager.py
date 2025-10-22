@@ -96,14 +96,25 @@ class SecretManager:
     def get_secret(self, name: str) -> str:
         """Retrieve and decrypt a stored secret."""
         if not name:
+            logger.debug("get_secret called with empty name")
             return ""
+        
         secret_path = self._base_dir / f"{name.lower()}.bin"
+        logger.debug(f"Looking for secret '{name}' at: {secret_path}")
+        
         if not secret_path.exists():
+            logger.debug(f"Secret file does not exist: {secret_path}")
             return ""
+        
         try:
             with open(secret_path, "r", encoding="utf-8") as fh:
                 encrypted = fh.read().strip()
-            return self.decrypt(encrypted)
+            
+            logger.debug(f"Secret file found, encrypted length: {len(encrypted)}")
+            decrypted = self.decrypt(encrypted)
+            logger.debug(f"Successfully decrypted secret '{name}', length: {len(decrypted)}")
+            return decrypted
+            
         except Exception as e:
             logger.warning(f"Failed to read secret '{name}': {e}. Returning empty string.")
             return ""

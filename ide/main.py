@@ -1012,18 +1012,70 @@ Focus on: purpose, inputs, outputs, and key logic."""
         
         # Parse code to find function at this line
         code = editor.toPlainText()
+        
+        # Method 1: Try AST parsing (works only if code has no syntax errors)
         try:
             import ast
             tree = ast.parse(code)
             
+            # Find all functions with their line ranges
+            functions = []
             for node in ast.walk(tree):
                 if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    if node.lineno <= line_number <= node.end_lineno:
-                        return node.name
-        except:
-            pass
+                    start_line = node.lineno
+                    # Get end line - try multiple methods
+                    end_line = getattr(node, 'end_lineno', None)
+                    
+                    if end_line is None:
+                        # Fallback: estimate end line from body
+                        if node.body:
+                            last_node = node.body[-1]
+                            end_line = getattr(last_node, 'end_lineno', None) or getattr(last_node, 'lineno', start_line)
+                        else:
+                            end_line = start_line
+                    
+                    functions.append({
+                        'name': node.name,
+                        'start': start_line,
+                        'end': end_line
+                    })
+            
+            # Find the function containing the cursor
+            for func in functions:
+                if func['start'] <= line_number <= func['end']:
+                    logger.debug(f"Found function '{func['name']}' at line {line_number}")
+                    return func['name']
+            
+        except SyntaxError as e:
+            logger.warning(f"Syntax error in code, using regex fallback: {e}")
+        except Exception as e:
+            logger.error(f"Error parsing code to find function: {e}")
         
-        return None
+        # Method 2: Regex-based fallback (works even with syntax errors)
+        import re
+        lines = code.split('\n')
+        
+        # Look backwards from cursor to find the most recent function definition
+        current_func = None
+        current_indent = None
+        
+        for i in range(line_number - 1, -1, -1):
+            line = lines[i] if i < len(lines) else ""
+            
+            # Check if this is a function definition
+            func_match = re.match(r'^(\s*)(def|async\s+def)\s+(\w+)\s*\(', line)
+            if func_match:
+                indent = len(func_match.group(1))
+                func_name = func_match.group(3)
+                
+                # If we haven't found a function yet, or this function has less/equal indent
+                if current_func is None or (current_indent is not None and indent <= current_indent):
+                    current_func = func_name
+                    current_indent = indent
+                    logger.debug(f"Found function '{func_name}' at line {i+1} using regex")
+                    break
+        
+        return current_func
     
     def generate_docstring_for_current(self):
         """Generate docstring for function at cursor"""
@@ -1034,6 +1086,18 @@ Focus on: purpose, inputs, outputs, and key logic."""
         func_name = self._get_current_function_name()
         if not func_name:
             QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Check if AI provider is initialized
+        if not self.ai_chat_panel.ai_manager.is_provider_initialized():
+            reply = QMessageBox.question(
+                self,
+                "AI Not Configured",
+                "AI provider is not configured. Would you like to open settings?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self.open_ai_settings()
             return
         
         # Show progress
@@ -1104,10 +1168,16 @@ Focus on: purpose, inputs, outputs, and key logic."""
             )
             
             if success:
-                # Reload file in editor
-                self.load_file_in_editor(self.current_file)
-                QMessageBox.information(self, "Success", "Docstring inserted successfully!")
+                # Reload file content in current editor
+                editor = self.get_current_editor()
+                if editor and self.current_file:
+                    with open(self.current_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    editor.setPlainText(content)
+                    self.statusBar().showMessage(f"Docstring inserted for {func_name}")
+                
                 dialog.close()
+                QMessageBox.information(self, "Success", "Docstring inserted successfully!")
             else:
                 QMessageBox.warning(self, "Failed", "Could not insert docstring")
         except Exception as e:
@@ -1122,6 +1192,18 @@ Focus on: purpose, inputs, outputs, and key logic."""
         func_name = self._get_current_function_name()
         if not func_name:
             QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Check if AI provider is initialized
+        if not self.ai_chat_panel.ai_manager.is_provider_initialized():
+            reply = QMessageBox.question(
+                self,
+                "AI Not Configured",
+                "AI provider is not configured. Would you like to open settings?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self.open_ai_settings()
             return
         
         # Show progress
@@ -1155,6 +1237,18 @@ Focus on: purpose, inputs, outputs, and key logic."""
         func_name = self._get_current_function_name()
         if not func_name:
             QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Check if AI provider is initialized
+        if not self.ai_chat_panel.ai_manager.is_provider_initialized():
+            reply = QMessageBox.question(
+                self,
+                "AI Not Configured",
+                "AI provider is not configured. Would you like to open settings?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                self.open_ai_settings()
             return
         
         # Show progress
