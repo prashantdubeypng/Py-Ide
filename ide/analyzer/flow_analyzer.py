@@ -5,9 +5,9 @@ Uses AST to safely parse Python code and build call graphs
 import ast
 import os
 from pathlib import Path
-from typing import Dict, Set, List, Tuple
+from typing import Dict, Set, List, Tuple, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import hashlib
 
 from ide.analyzer.security import SecurityValidator, sanitize_node_name
@@ -22,17 +22,24 @@ class FunctionInfo:
     calls: Set[str]
     is_async: bool = False
     is_method: bool = False
-    class_name: str = None
+    class_name: Optional[str] = None
+    signature: str = ""
+    docstring: str = ""
+    source: str = ""
+    end_line: Optional[int] = None
+    loc: int = 0
+    parameters: List[str] = field(default_factory=list)
 
 
 class FunctionCallVisitor(ast.NodeVisitor):
     """AST visitor to extract function definitions and calls"""
     
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, source: str):
         self.filepath = filepath
         self.functions: Dict[str, FunctionInfo] = {}
         self.current_function = None
         self.current_class = None
+        self.source = source
     
     def visit_ClassDef(self, node: ast.ClassDef):
         """Visit class definition"""
@@ -53,6 +60,12 @@ class FunctionCallVisitor(ast.NodeVisitor):
             full_name = func_name
             is_method = False
         
+        signature, params = self._build_signature(node)
+        docstring = ast.get_docstring(node) or ""
+        source_snippet = self._get_source_snippet(node)
+        end_line = getattr(node, 'end_lineno', node.lineno)
+        loc = max(1, end_line - node.lineno + 1)
+
         # Create function info
         func_info = FunctionInfo(
             name=full_name,
@@ -61,7 +74,13 @@ class FunctionCallVisitor(ast.NodeVisitor):
             calls=set(),
             is_async=False,
             is_method=is_method,
-            class_name=self.current_class
+            class_name=self.current_class,
+            signature=signature,
+            docstring=docstring,
+            source=source_snippet,
+            end_line=end_line,
+            loc=loc,
+            parameters=params
         )
         
         self.functions[full_name] = func_info
@@ -83,6 +102,12 @@ class FunctionCallVisitor(ast.NodeVisitor):
             full_name = func_name
             is_method = False
         
+        signature, params = self._build_signature(node)
+        docstring = ast.get_docstring(node) or ""
+        source_snippet = self._get_source_snippet(node)
+        end_line = getattr(node, 'end_lineno', node.lineno)
+        loc = max(1, end_line - node.lineno + 1)
+
         func_info = FunctionInfo(
             name=full_name,
             file=self.filepath,
@@ -90,7 +115,13 @@ class FunctionCallVisitor(ast.NodeVisitor):
             calls=set(),
             is_async=True,
             is_method=is_method,
-            class_name=self.current_class
+            class_name=self.current_class,
+            signature=signature,
+            docstring=docstring,
+            source=source_snippet,
+            end_line=end_line,
+            loc=loc,
+            parameters=params
         )
         
         self.functions[full_name] = func_info
@@ -119,6 +150,61 @@ class FunctionCallVisitor(ast.NodeVisitor):
                 return f"{node.value.id}.{node.attr}"
             return node.attr
         return None
+
+    def _build_signature(self, node: ast.AST) -> Tuple[str, List[str]]:
+        """Build function signature string"""
+        params = []
+        args = node.args
+        pieces = []
+
+        def format_arg(arg: ast.arg) -> str:
+            annotation = None
+            if getattr(arg, 'annotation', None) is not None:
+                annotation = ast.get_source_segment(self.source, arg.annotation)
+            text = arg.arg
+            if annotation:
+                text += f": {annotation}"
+            return text
+
+        positional = [format_arg(arg) for arg in args.args]
+        params.extend(arg.arg for arg in args.args)
+
+        defaults = [ast.get_source_segment(self.source, d) or "..." for d in args.defaults]
+        # Align defaults with rightmost positional args
+        for default, index in zip(reversed(defaults), range(len(positional) - 1, -1, -1)):
+            positional[index] = f"{positional[index]}={default}"
+
+        pieces.extend(positional)
+
+        if args.vararg:
+            pieces.append(f"*{format_arg(args.vararg)}")
+            params.append(args.vararg.arg)
+        elif args.kwonlyargs:
+            pieces.append("*")
+
+        for kw_arg, default in zip(args.kwonlyargs, args.kw_defaults):
+            entry = format_arg(kw_arg)
+            if default is not None:
+                default_text = ast.get_source_segment(self.source, default) or "None"
+                entry = f"{entry}={default_text}"
+            pieces.append(entry)
+            params.append(kw_arg.arg)
+
+        if args.kwarg:
+            pieces.append(f"**{format_arg(args.kwarg)}")
+            params.append(args.kwarg.arg)
+
+        signature = f"({', '.join(pieces)})"
+        return signature, params
+
+    def _get_source_snippet(self, node: ast.AST) -> str:
+        """Get source code snippet for node"""
+        if not self.source:
+            return ""
+        snippet = ast.get_source_segment(self.source, node)
+        if snippet and len(snippet) > 800:
+            return snippet[:800] + "\n..."
+        return snippet or ""
 
 
 class FunctionFlowAnalyzer:
@@ -201,7 +287,7 @@ class FunctionFlowAnalyzer:
             tree = ast.parse(source, filename=filepath)
             
             # Visit nodes
-            visitor = FunctionCallVisitor(filepath)
+            visitor = FunctionCallVisitor(filepath, source)
             visitor.visit(tree)
             
             # Sanitize function names for security

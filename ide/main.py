@@ -25,6 +25,12 @@ from ide.analyzer.flow_analyzer import FunctionFlowAnalyzer
 from ide.analyzer.graph_builder import GraphBuilder
 from ide.analyzer.visualizer import Visualizer
 
+# Import AI components
+from ide.ai_chat_panel import AIChatPanel
+from ide.graph_ai_integration import GraphAIAssistant
+from ide.ai_code_assistant import AICodeAssistant
+from ide.ai_settings_dialog import AISettingsDialog
+
 
 class IDE(QMainWindow):
     """Main IDE window with modular architecture"""
@@ -94,18 +100,24 @@ class IDE(QMainWindow):
         self.terminal = TerminalWidget(self.project_dir, self)
         self.terminal.setVisible(self.settings.get("terminal_visible", True))
         
+        # === AI Chat Panel ===
+        self.ai_chat_panel = AIChatPanel(self.settings, parent_ide=self)
+        self.ai_chat_panel.setVisible(self.settings.get("ai_chat_visible", False))
+        self.ai_chat_panel.setMinimumWidth(300)
+        
         # === Vertical Splitter (Editor | Terminal) ===
         editor_splitter = QSplitter(Qt.Vertical)
         editor_splitter.addWidget(self.tab_widget)
         editor_splitter.addWidget(self.terminal)
-        editor_splitter.setSizes([700, 200])
+        editor_splitter.setSizes([500, 150])
         
-        # === Main Splitter (Navbar | Explorer | Editor) ===
+        # === Main Splitter (Navbar | Explorer | Editor | AI Chat) - VS Code style ===
         self.main_splitter = QSplitter(Qt.Horizontal)
         self.main_splitter.addWidget(self.navbar_widget)
         self.main_splitter.addWidget(self.file_explorer)
         self.main_splitter.addWidget(editor_splitter)
-        self.main_splitter.setSizes([48, 250, 1350])
+        self.main_splitter.addWidget(self.ai_chat_panel)  # AI Chat on right side
+        self.main_splitter.setSizes([48, 250, 900, 350])
         
         self.setCentralWidget(self.main_splitter)
         
@@ -125,6 +137,10 @@ class IDE(QMainWindow):
         
         # Worker threads
         self.workers = []
+        
+        # AI components
+        self.graph_ai_assistant = GraphAIAssistant(self.ai_chat_panel.ai_manager)
+        self.ai_code_assistant = AICodeAssistant(self.ai_chat_panel.ai_manager)
         
         logger.info("IDE initialized successfully")
     
@@ -176,7 +192,49 @@ class IDE(QMainWindow):
         self.terminal_btn.clicked.connect(self.toggle_terminal)
         navbar_layout.addWidget(self.terminal_btn)
         
+        # AI Chat button
+        self.ai_btn = QToolButton()
+        self.ai_btn.setText("🤖")
+        self.ai_btn.setFont(QFont("Segoe UI Emoji", 16))
+        self.ai_btn.setToolTip("Toggle AI Chat (Ctrl+Shift+A)")
+        self.ai_btn.setFixedSize(40, 40)
+        self.ai_btn.setStyleSheet("""
+            QToolButton {
+                background-color: #2B2B2B;
+                color: #BBBBBB;
+                border: 1px solid #3C3F41;
+                border-radius: 4px;
+            }
+            QToolButton:hover {
+                background-color: #3C3F41;
+                border: 1px solid #4B6EAF;
+            }
+        """)
+        self.ai_btn.clicked.connect(self.toggle_ai_chat)
+        navbar_layout.addWidget(self.ai_btn)
+        
         navbar_layout.addStretch(1)
+        
+        # Settings button (at bottom)
+        self.settings_btn = QToolButton()
+        self.settings_btn.setText("⚙️")
+        self.settings_btn.setFont(QFont("Segoe UI Emoji", 16))
+        self.settings_btn.setToolTip("AI Settings")
+        self.settings_btn.setFixedSize(40, 40)
+        self.settings_btn.setStyleSheet("""
+            QToolButton {
+                background-color: #2B2B2B;
+                color: #BBBBBB;
+                border: 1px solid #3C3F41;
+                border-radius: 4px;
+            }
+            QToolButton:hover {
+                background-color: #3C3F41;
+                border: 1px solid #4B6EAF;
+            }
+        """)
+        self.settings_btn.clicked.connect(self.open_ai_settings)
+        navbar_layout.addWidget(self.settings_btn)
         
         self.navbar_widget = QWidget()
         self.navbar_widget.setLayout(navbar_layout)
@@ -282,6 +340,44 @@ class IDE(QMainWindow):
         run_action.triggered.connect(self.run_code)
         run_menu.addAction(run_action)
         
+        # AI Tools menu
+        ai_menu = menubar.addMenu("AI Tools")
+        
+        gen_docstring_action = QAction("📝 Generate Docstring", self)
+        gen_docstring_action.setShortcut("Ctrl+Shift+D")
+        gen_docstring_action.setToolTip("Generate AI docstring for current function")
+        gen_docstring_action.triggered.connect(self.generate_docstring_for_current)
+        ai_menu.addAction(gen_docstring_action)
+        
+        refactor_hints_action = QAction("🔄 Refactoring Hints", self)
+        refactor_hints_action.setShortcut("Ctrl+Shift+R")
+        refactor_hints_action.setToolTip("Get AI refactoring suggestions")
+        refactor_hints_action.triggered.connect(self.show_refactoring_hints)
+        ai_menu.addAction(refactor_hints_action)
+        
+        analyze_func_action = QAction("🧠 Analyze Function", self)
+        analyze_func_action.setShortcut("Ctrl+Shift+F")
+        analyze_func_action.setToolTip("Complete AI analysis with metrics and summary")
+        analyze_func_action.triggered.connect(self.analyze_current_function)
+        ai_menu.addAction(analyze_func_action)
+        
+        ai_menu.addSeparator()
+        
+        scan_project_action = QAction("🔍 Scan Project", self)
+        scan_project_action.setToolTip("Scan and cache function summaries for entire project")
+        scan_project_action.triggered.connect(self.scan_project_with_ai)
+        ai_menu.addAction(scan_project_action)
+        
+        clear_cache_action = QAction("🗑️ Clear AI Cache", self)
+        clear_cache_action.triggered.connect(self.clear_ai_cache)
+        ai_menu.addAction(clear_cache_action)
+        
+        ai_menu.addSeparator()
+        
+        ai_stats_action = QAction("📊 AI Statistics", self)
+        ai_stats_action.triggered.connect(self.show_ai_stats)
+        ai_menu.addAction(ai_stats_action)
+        
         # Help menu
         help_menu = menubar.addMenu("Help")
         
@@ -318,6 +414,15 @@ class IDE(QMainWindow):
         run_action.triggered.connect(self.run_code)
         toolbar.addAction(run_action)
         
+        # Sandbox toggle button
+        self.sandbox_action = QAction("🔒 Sandbox: OFF", self)
+        self.sandbox_action.setToolTip("Toggle Docker Sandbox (Secure Execution)")
+        self.sandbox_action.setCheckable(True)
+        self.sandbox_action.setChecked(self.settings.get("use_docker_sandbox", False))
+        self.sandbox_action.triggered.connect(self.toggle_sandbox)
+        self._update_sandbox_button()
+        toolbar.addAction(self.sandbox_action)
+        
         toolbar.addSeparator()
         
         # Flow Analyzer button
@@ -328,7 +433,16 @@ class IDE(QMainWindow):
         
         toolbar.addSeparator()
         
-        ai_action = QAction("AI", self)
+        # AI Chat button in toolbar
+        ai_chat_action = QAction("💬 AI Chat", self)
+        ai_chat_action.setToolTip("Toggle AI Chat (Ctrl+Shift+A)")
+        ai_chat_action.setShortcut("Ctrl+Shift+A")
+        ai_chat_action.triggered.connect(self.toggle_ai_chat)
+        toolbar.addAction(ai_chat_action)
+        
+        # AI Suggestions button
+        ai_action = QAction("✨ Suggest", self)
+        ai_action.setToolTip("Get AI Suggestions")
         ai_action.triggered.connect(self.ai_suggestion)
         toolbar.addAction(ai_action)
     
@@ -347,8 +461,7 @@ class IDE(QMainWindow):
         editor = CodeEditor(self)
         editor.setPlainText(content)
         
-        # Add syntax highlighting
-        highlighter = PythonHighlighter(editor.document())
+        # Syntax highlighting is already set up in CodeEditor.__init__
         
         # Connect text changed for autosave
         editor.textChanged.connect(self.trigger_autosave)
@@ -425,6 +538,74 @@ class IDE(QMainWindow):
         self.terminal.setVisible(visible)
         self.settings.set("terminal_visible", visible)
         self.statusBar().showMessage("Terminal " + ("opened" if visible else "closed"))
+    
+    def toggle_ai_chat(self):
+        """Toggle AI chat panel visibility"""
+        visible = not self.ai_chat_panel.isVisible()
+        self.ai_chat_panel.setVisible(visible)
+        self.settings.set("ai_chat_visible", visible)
+        self.statusBar().showMessage("AI Chat " + ("opened" if visible else "closed"))
+    
+    def open_ai_settings(self):
+        """Open AI settings dialog"""
+        try:
+            dialog = AISettingsDialog(self.settings, self)
+            dialog.settings_changed.connect(self.on_ai_settings_changed)
+            
+            if dialog.exec_() == dialog.Accepted:
+                self.statusBar().showMessage("AI settings updated successfully")
+                logger.info("AI settings updated")
+        except Exception as e:
+            logger.error(f"Error opening AI settings: {e}")
+            QMessageBox.warning(
+                self,
+                "Settings Error",
+                f"Failed to open AI settings: {str(e)}"
+            )
+    
+    def on_ai_settings_changed(self):
+        """Handle AI settings changes - reinitialize AI providers"""
+        try:
+            # Reinitialize AI manager with new settings
+            from ide.utils.ai_manager import AIManager
+            new_ai_manager = AIManager(self.settings)
+            
+            # Update AI chat panel's manager
+            self.ai_chat_panel.ai_manager = new_ai_manager
+            
+            # Update AI assistants
+            self.graph_ai_assistant = GraphAIAssistant(new_ai_manager)
+            self.ai_code_assistant = AICodeAssistant(new_ai_manager)
+            
+            logger.info("AI providers reinitialized with new settings")
+            self.statusBar().showMessage("AI providers updated")
+        except Exception as e:
+            logger.error(f"Error reinitializing AI providers: {e}")
+            QMessageBox.warning(
+                self,
+                "AI Update Error",
+                f"Failed to update AI providers: {str(e)}"
+            )
+    
+    def toggle_sandbox(self):
+        """Toggle Docker sandbox mode"""
+        enabled = self.sandbox_action.isChecked()
+        self.settings.set("use_docker_sandbox", enabled)
+        self._update_sandbox_button()
+        
+        status = "enabled" if enabled else "disabled"
+        self.statusBar().showMessage(f"Docker sandbox {status}")
+        logger.info(f"Docker sandbox {status}")
+    
+    def _update_sandbox_button(self):
+        """Update sandbox button text and style"""
+        enabled = self.settings.get("use_docker_sandbox", False)
+        if enabled:
+            self.sandbox_action.setText("🔒 Sandbox: ON")
+            self.sandbox_action.setToolTip("Docker Sandbox Enabled - Code runs securely in container")
+        else:
+            self.sandbox_action.setText("🔓 Sandbox: OFF")
+            self.sandbox_action.setToolTip("Local Execution - Click to enable Docker sandbox")
     
     def open_file_dialog(self):
         """Open file dialog"""
@@ -510,7 +691,7 @@ class IDE(QMainWindow):
             logger.info(f"Opened folder: {folder}")
     
     def run_code(self):
-        """Run current code using QProcess"""
+        """Run current code using SecureExecutor (Docker sandbox) or QProcess fallback"""
         editor = self.get_current_editor()
         if not editor:
             return
@@ -524,7 +705,93 @@ class IDE(QMainWindow):
         
         code = editor.toPlainText()
         self.terminal.output.clear()
-        self.terminal.output.append("<span style='color:#6A8759;'>Running...</span>")
+        
+        # Try secure execution first
+        use_sandbox = self.settings.get("use_docker_sandbox", False)
+        
+        if use_sandbox:
+            self._run_code_sandboxed(code)
+        else:
+            self._run_code_qprocess(code)
+    
+    def _run_code_sandboxed(self, code: str):
+        """Run code in Docker sandbox"""
+        try:
+            from ide.utils.secure_executor import get_executor
+            
+            self.terminal.output.append("<span style='color:#6A8759;'>🔒 Running in secure sandbox...</span>")
+            self.statusBar().showMessage("Running code in sandbox...")
+            
+            # Get executor
+            executor = get_executor(
+                mem_limit=self.settings.get("sandbox_mem_limit", "256m"),
+                cpu_quota=self.settings.get("sandbox_cpu_quota", 50000),
+                enable_validation=self.settings.get("sandbox_validation", True)
+            )
+            
+            # Check Docker availability
+            if not executor.is_docker_available():
+                self.terminal.output.append("<span style='color:#CC7832;'>⚠️ Docker not available, falling back to local execution</span>")
+                self._run_code_qprocess(code)
+                return
+            
+            # Run in background thread to keep UI responsive
+            from PyQt5.QtCore import QThread, pyqtSignal
+            
+            class SandboxWorker(QThread):
+                finished = pyqtSignal(dict)
+                
+                def __init__(self, executor, code):
+                    super().__init__()
+                    self.executor = executor
+                    self.code = code
+                
+                def run(self):
+                    result = self.executor.run_code(self.code, timeout=10)
+                    self.finished.emit(result)
+            
+            self.sandbox_worker = SandboxWorker(executor, code)
+            self.sandbox_worker.finished.connect(self._on_sandbox_finished)
+            self.sandbox_worker.start()
+            
+        except ImportError:
+            self.terminal.output.append("<span style='color:#CC7832;'>⚠️ Docker library not installed, using local execution</span>")
+            self.terminal.output.append("<span style='color:#A9B7C6;'>Install with: pip install docker</span>")
+            self._run_code_qprocess(code)
+        except Exception as e:
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>❌ Sandbox error: {str(e)}</span>")
+            self.terminal.output.append("<span style='color:#A9B7C6;'>Falling back to local execution...</span>")
+            self._run_code_qprocess(code)
+    
+    def _on_sandbox_finished(self, result: dict):
+        """Handle sandbox execution completion"""
+        exit_code = result.get("exit_code", 1)
+        output = result.get("output", "")
+        error = result.get("error")
+        
+        # Display output
+        if output:
+            safe_output = output.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
+            color = "#A9B7C6" if exit_code == 0 else "#BC3F3C"
+            self.terminal.output.append(f"<span style='color:{color};'>{safe_output}</span>")
+        
+        # Display error if any
+        if error:
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>Error: {error}</span>")
+        
+        # Status message
+        if exit_code == 0:
+            self.terminal.output.append("<span style='color:#6A8759;'>✓ Execution completed successfully</span>")
+            self.statusBar().showMessage("Sandbox execution completed")
+        else:
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>✗ Execution failed (exit code {exit_code})</span>")
+            self.statusBar().showMessage("Sandbox execution failed")
+        
+        logger.info(f"Sandbox execution completed with exit code {exit_code}")
+    
+    def _run_code_qprocess(self, code: str):
+        """Run code using QProcess (local, unsandboxed)"""
+        self.terminal.output.append("<span style='color:#6A8759;'>Running locally...</span>")
         
         # Kill previous process if running
         if self.process.state() == QProcess.Running:
@@ -535,7 +802,7 @@ class IDE(QMainWindow):
         self.process.start(sys.executable, ["-c", code])
         self.process.setWorkingDirectory(self.project_dir)
         self.statusBar().showMessage("Running code...")
-        logger.info("Running code execution")
+        logger.info("Running code execution (QProcess)")
     
     def handle_stdout(self):
         """Handle stdout from process"""
@@ -601,13 +868,74 @@ class IDE(QMainWindow):
             if cycles:
                 self.terminal.output.append(f"<span style='color:#CC7832;'>⚠️ Found {len(cycles)} circular call chain(s)</span>")
             
+            # Step 2.5: Generate AI insights (if enabled in settings)
+            if self.settings.get("flow_ai_enabled", True):
+                self.terminal.output.append("<span style='color:#A9B7C6;'>🤖 Generating AI insights...</span>")
+                try:
+                    complexity_insight = self.graph_ai_assistant.get_complexity_assessment({
+                        "nodes": [{"name": f.name} for f in functions],
+                        "edges": [(f.name, c) for f in functions for c in f.calls],
+                        "cycles": cycles,
+                        "stats": stats
+                    })
+                    self.terminal.output.append(f"<span style='color:#B8D4A8;'>💡 AI Insight: {complexity_insight[:150]}...</span>")
+                    
+                    # Generate function-specific explanations if enabled
+                    if self.settings.get("flow_explain_enabled", True):
+                        self.terminal.output.append("<span style='color:#A9B7C6;'>📝 Analyzing key functions...</span>")
+                        # Analyze top 5 most complex/important functions
+                        for func in sorted(functions, key=lambda f: len(f.calls), reverse=True)[:5]:
+                            try:
+                                explanation = self.ai_code_assistant.generate_function_summary(
+                                    func.name,
+                                    func.source_code if hasattr(func, 'source_code') else ""
+                                )
+                                if explanation:
+                                    self.terminal.output.append(
+                                        f"<span style='color:#9876AA;'>  • {func.name}: {explanation[:80]}...</span>"
+                                    )
+                            except Exception as func_err:
+                                logger.debug(f"Skipping function explanation for {func.name}: {func_err}")
+                except Exception as e:
+                    logger.debug(f"AI insight generation optional, skipping: {e}")
+                    self.terminal.output.append("<span style='color:#BBB529;'>⚠️ AI insights unavailable (check API keys)</span>")
+            
             # Step 3: Optimize for visualization
             optimized_graph = builder.optimize_for_visualization(max_nodes=100)
             self.terminal.output.append("<span style='color:#A9B7C6;'>✓ Optimized graph for visualization</span>")
             
-            # Step 4: Visualize
+            # Step 4: Generate AI explanations for nodes (if enabled)
+            ai_explanations = {}
+            if self.settings.get("flow_ai_enabled", True) and self.settings.get("flow_explain_enabled", True):
+                self.terminal.output.append("<span style='color:#A9B7C6;'>🤖 Generating AI explanations for interactive nodes...</span>")
+                
+                # Ensure AI provider is initialized
+                if not self.ai_chat_panel.ai_manager.provider:
+                    ai_settings = self.settings.get("ai", {})
+                    provider_name = ai_settings.get("provider", "gemini")
+                    self.ai_chat_panel.ai_manager.initialize_provider(provider_name)
+                
+                # Generate explanations for all functions (limit to top 50)
+                for func_name, func_info in list(optimized_graph.nodes.items())[:50]:
+                    try:
+                        if func_info.source:
+                            prompt = f"""Explain what this Python function does in 2-3 sentences:
+
+```python
+{func_info.source[:500]}
+```
+
+Focus on: purpose, inputs, outputs, and key logic."""
+                            explanation = self.ai_chat_panel.ai_manager.generate_sync(prompt)
+                            ai_explanations[func_name] = explanation
+                    except Exception as e:
+                        logger.debug(f"Skipping AI explanation for {func_name}: {e}")
+                
+                self.terminal.output.append(f"<span style='color:#B8D4A8;'>✓ Generated {len(ai_explanations)} AI explanations</span>")
+            
+            # Step 5: Visualize with AI explanations
             visualizer = Visualizer()
-            html_path = visualizer.render_with_stats(optimized_graph, "function_flow.html")
+            html_path = visualizer.render_with_ai_explanations(optimized_graph, ai_explanations, "function_flow.html")
             
             self.terminal.output.append(f"<span style='color:#6A8759;'>✓ Visualization complete!</span>")
             self.terminal.output.append(f"<span style='color:#A9B7C6;'>📂 Saved to: {html_path}</span>")
@@ -627,14 +955,368 @@ class IDE(QMainWindow):
             logger.error(f"Flow analysis error: {e}", exc_info=True)
     
     def ai_suggestion(self):
-        """Show AI suggestions"""
+        """Show AI suggestions for current code"""
+        editor = self.get_current_editor()
+        if not editor:
+            self.statusBar().showMessage("No editor open")
+            return
+        
+        code = editor.toPlainText()
+        if not code.strip():
+            self.statusBar().showMessage("No code to analyze")
+            return
+        
+        # Show terminal if hidden
+        if not self.terminal.isVisible():
+            self.terminal.setVisible(True)
+        
         self.terminal.output.clear()
         self.terminal.output.append("<span style='color:#6A8759;'>🤖 AI Analyzing code...</span>")
-        self.terminal.output.append("\n<span style='color:#A9B7C6;'>💡 <b>Suggestions:</b></span>")
-        self.terminal.output.append("<span style='color:#A9B7C6;'>  • Use type hints for better code clarity</span>")
-        self.terminal.output.append("<span style='color:#A9B7C6;'>  • Add docstrings to functions</span>")
-        self.terminal.output.append("<span style='color:#A9B7C6;'>  • Consider using list comprehensions</span>")
-        self.statusBar().showMessage("AI suggestions generated")
+        
+        # Ensure AI provider is initialized
+        if not self.ai_chat_panel.ai_manager.provider:
+            ai_settings = self.settings.get("ai", {})
+            provider_name = ai_settings.get("provider", "gemini")
+            
+            if not self.ai_chat_panel.ai_manager.initialize_provider(provider_name):
+                self.terminal.output.append(
+                    "<span style='color:#BC3F3C;'>❌ AI Provider not initialized. "
+                    "Please configure API key in settings (⚙️ button).</span>"
+                )
+                self.statusBar().showMessage("AI not configured")
+                return
+        
+        # Get AI suggestions
+        try:
+            suggestions = self.ai_chat_panel.ai_manager.get_optimization_suggestions(code[:500])  # Limit size
+            self.terminal.output.append(f"<span style='color:#B8D4A8;'>💡 <b>Suggestions:</b></span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>{suggestions}</span>")
+            self.statusBar().showMessage("AI suggestions generated")
+        except Exception as e:
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>❌ Error: {str(e)}</span>")
+            logger.error(f"AI suggestion error: {e}")
+    
+    # ==================== AI Code Assistant Features ====================
+    
+    def _get_current_function_name(self):
+        """Get the name of the function at cursor position"""
+        editor = self.get_current_editor()
+        if not editor:
+            return None
+        
+        # Get cursor position
+        cursor = editor.textCursor()
+        line_number = cursor.blockNumber() + 1
+        
+        # Parse code to find function at this line
+        code = editor.toPlainText()
+        try:
+            import ast
+            tree = ast.parse(code)
+            
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if node.lineno <= line_number <= node.end_lineno:
+                        return node.name
+        except:
+            pass
+        
+        return None
+    
+    def generate_docstring_for_current(self):
+        """Generate docstring for function at cursor"""
+        if not self.current_file:
+            QMessageBox.warning(self, "No File", "Please save the file first")
+            return
+        
+        func_name = self._get_current_function_name()
+        if not func_name:
+            QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Show progress
+        self.statusBar().showMessage(f"Generating docstring for {func_name}...")
+        QApplication.processEvents()
+        
+        try:
+            docstring = self.ai_code_assistant.generate_docstring_for_function(
+                self.current_file,
+                func_name,
+                style="google",
+                insert=False  # Don't auto-insert, let user review
+            )
+            
+            # Show in dialog
+            from PyQt5.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout
+            
+            dialog = QDialog(self)
+            dialog.setWindowTitle(f"Generated Docstring for '{func_name}'")
+            dialog.resize(600, 400)
+            
+            layout = QVBoxLayout()
+            
+            text_edit = QTextEdit()
+            text_edit.setPlainText(docstring)
+            text_edit.setStyleSheet("""
+                QTextEdit {
+                    background-color: #2B2B2B;
+                    color: #A9B7C6;
+                    font-family: Consolas;
+                    font-size: 10pt;
+                }
+            """)
+            layout.addWidget(text_edit)
+            
+            # Buttons
+            button_layout = QHBoxLayout()
+            
+            insert_btn = QPushButton("Insert into Code")
+            insert_btn.clicked.connect(lambda: self._insert_docstring_and_close(
+                func_name, docstring, dialog
+            ))
+            button_layout.addWidget(insert_btn)
+            
+            copy_btn = QPushButton("Copy to Clipboard")
+            copy_btn.clicked.connect(lambda: QApplication.clipboard().setText(docstring))
+            button_layout.addWidget(copy_btn)
+            
+            cancel_btn = QPushButton("Cancel")
+            cancel_btn.clicked.connect(dialog.close)
+            button_layout.addWidget(cancel_btn)
+            
+            layout.addLayout(button_layout)
+            dialog.setLayout(layout)
+            dialog.exec_()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to generate docstring:\n{str(e)}")
+            logger.error(f"Docstring generation error: {e}")
+        finally:
+            self.statusBar().clearMessage()
+    
+    def _insert_docstring_and_close(self, func_name: str, docstring: str, dialog):
+        """Insert docstring and close dialog"""
+        try:
+            success = self.ai_code_assistant.docstring_gen.insert_docstring(
+                self.current_file, func_name, docstring
+            )
+            
+            if success:
+                # Reload file in editor
+                self.load_file_in_editor(self.current_file)
+                QMessageBox.information(self, "Success", "Docstring inserted successfully!")
+                dialog.close()
+            else:
+                QMessageBox.warning(self, "Failed", "Could not insert docstring")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to insert docstring:\n{str(e)}")
+    
+    def show_refactoring_hints(self):
+        """Show refactoring suggestions for current function"""
+        if not self.current_file:
+            QMessageBox.warning(self, "No File", "Please save the file first")
+            return
+        
+        func_name = self._get_current_function_name()
+        if not func_name:
+            QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Show progress
+        self.statusBar().showMessage(f"Analyzing {func_name}...")
+        QApplication.processEvents()
+        
+        try:
+            advice = self.ai_code_assistant.get_refactoring_advice(self.current_file, func_name)
+            
+            # Show in terminal with AI chat visible
+            if not self.ai_chat_panel.isVisible():
+                self.ai_chat_panel.setVisible(True)
+            
+            self.terminal.output.append(f"<br><span style='color:#6A8759; font-weight:bold;'>🔄 Refactoring Hints for '{func_name}':</span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>{advice.replace(chr(10), '<br>')}</span><br>")
+            
+            self.statusBar().showMessage(f"Refactoring hints displayed for {func_name}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to get refactoring hints:\n{str(e)}")
+            logger.error(f"Refactoring hints error: {e}")
+        finally:
+            self.statusBar().clearMessage()
+    
+    def analyze_current_function(self):
+        """Complete AI analysis of current function"""
+        if not self.current_file:
+            QMessageBox.warning(self, "No File", "Please save the file first")
+            return
+        
+        func_name = self._get_current_function_name()
+        if not func_name:
+            QMessageBox.warning(self, "No Function", "Cursor is not inside a function")
+            return
+        
+        # Show progress
+        self.statusBar().showMessage(f"Analyzing {func_name}...")
+        QApplication.processEvents()
+        
+        try:
+            result = self.ai_code_assistant.analyze_function(
+                self.current_file,
+                func_name,
+                force_refresh=False
+            )
+            
+            if "error" in result:
+                QMessageBox.warning(self, "Error", result["error"])
+                return
+            
+            # Display comprehensive results
+            if not self.terminal.isVisible():
+                self.terminal.setVisible(True)
+            
+            self.terminal.output.append(f"<br><span style='color:#4B6EAF; font-weight:bold; font-size:12pt;'>🧠 AI Analysis: '{func_name}'</span><br>")
+            
+            # Summary
+            if result.get("summary"):
+                self.terminal.output.append(f"<span style='color:#6A8759; font-weight:bold;'>📝 Summary:</span>")
+                self.terminal.output.append(f"<span style='color:#A9B7C6;'>{result['summary']}</span><br>")
+            
+            # Metrics
+            if result.get("metrics"):
+                metrics = result["metrics"]
+                self.terminal.output.append(f"<span style='color:#CC7832; font-weight:bold;'>📊 Metrics:</span>")
+                self.terminal.output.append(f"<span style='color:#A9B7C6;'>")
+                self.terminal.output.append(f"  • Lines of Code: {metrics.get('lines_of_code', 'N/A')}<br>")
+                self.terminal.output.append(f"  • Complexity: {metrics.get('cyclomatic_complexity', 'N/A')}<br>")
+                self.terminal.output.append(f"  • Max Nesting: {metrics.get('max_nesting_depth', 'N/A')}<br>")
+                self.terminal.output.append(f"  • Parameters: {metrics.get('parameter_count', 'N/A')}<br>")
+                if metrics.get('needs_refactoring'):
+                    self.terminal.output.append(f"  ⚠️  <span style='color:#BC3F3C;'>Refactoring Recommended</span><br>")
+                else:
+                    self.terminal.output.append(f"  ✅ <span style='color:#6A8759;'>Code Quality: Good</span><br>")
+                self.terminal.output.append("</span><br>")
+            
+            # Docstring status
+            if result.get("has_docstring"):
+                self.terminal.output.append(f"<span style='color:#6A8759;'>✓ Has docstring</span><br>")
+            else:
+                self.terminal.output.append(f"<span style='color:#FFC66D;'>⚠️  Missing docstring (use Ctrl+Shift+D to generate)</span><br>")
+            
+            # Refactoring hints
+            if result.get("refactoring_hints"):
+                self.terminal.output.append(f"<br><span style='color:#CC7832; font-weight:bold;'>🔄 Refactoring Suggestions:</span>")
+                self.terminal.output.append(f"<span style='color:#A9B7C6;'>{result['refactoring_hints'].replace(chr(10), '<br>')}</span><br>")
+            
+            self.terminal.output.append("<span style='color:#808080;'>---</span><br>")
+            
+            self.statusBar().showMessage(f"Analysis complete for {func_name}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to analyze function:\n{str(e)}")
+            logger.error(f"Function analysis error: {e}")
+        finally:
+            self.statusBar().clearMessage()
+    
+    def scan_project_with_ai(self):
+        """Scan entire project and cache function summaries"""
+        reply = QMessageBox.question(
+            self,
+            "Scan Project",
+            f"This will analyze all Python files in:\n{self.project_dir}\n\n"
+            "This may take several minutes and use AI API credits.\n\nContinue?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply != QMessageBox.Yes:
+            return
+        
+        # Show progress
+        self.statusBar().showMessage("Scanning project... This may take a while...")
+        QApplication.processEvents()
+        
+        try:
+            if not self.terminal.isVisible():
+                self.terminal.setVisible(True)
+            
+            self.terminal.output.append("<br><span style='color:#4B6EAF; font-weight:bold;'>🔍 Starting project scan...</span><br>")
+            QApplication.processEvents()
+            
+            results = self.ai_code_assistant.scan_project(self.project_dir)
+            
+            self.terminal.output.append(f"<span style='color:#6A8759; font-weight:bold;'>✓ Scan Complete!</span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>")
+            self.terminal.output.append(f"  • Files scanned: {results['scanned_files']}<br>")
+            self.terminal.output.append(f"  • Functions found: {results['total_functions']}<br>")
+            self.terminal.output.append(f"  • Functions cached: {results['cached_functions']}<br>")
+            if results['errors']:
+                self.terminal.output.append(f"  • Errors: {len(results['errors'])}<br>")
+                for error in results['errors'][:5]:  # Show first 5 errors
+                    self.terminal.output.append(f"    - {error}<br>")
+            self.terminal.output.append("</span><br>")
+            
+            QMessageBox.information(
+                self,
+                "Scan Complete",
+                f"Scanned {results['scanned_files']} files\n"
+                f"Cached {results['cached_functions']} function summaries"
+            )
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to scan project:\n{str(e)}")
+            logger.error(f"Project scan error: {e}")
+        finally:
+            self.statusBar().clearMessage()
+    
+    def clear_ai_cache(self):
+        """Clear AI function summary cache"""
+        reply = QMessageBox.question(
+            self,
+            "Clear Cache",
+            "This will clear all cached function summaries and docstrings.\n\nContinue?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                self.ai_code_assistant.cache.clear_all()
+                self.ai_chat_panel.ai_manager.clear_cache()
+                QMessageBox.information(self, "Success", "AI cache cleared successfully!")
+                logger.info("AI cache cleared")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to clear cache:\n{str(e)}")
+    
+    def show_ai_stats(self):
+        """Show AI statistics and cache info"""
+        try:
+            stats = self.ai_code_assistant.get_stats()
+            
+            cache_stats = stats.get("cache_stats", {})
+            ai_stats = stats.get("ai_stats", {})
+            
+            msg = f"""AI Code Assistant Statistics
+
+Function Cache:
+  • Cached files: {cache_stats.get('total_files', 0)}
+  • Cached functions: {cache_stats.get('total_functions', 0)}
+  • Cache size: {cache_stats.get('cache_size_kb', 0):.2f} KB
+  • Location: {cache_stats.get('cache_file', 'N/A')}
+
+AI Manager:
+  • Total requests: {ai_stats.get('total_requests', 0)}
+  • Cache hits: {ai_stats.get('cache_hits', 0)}
+  • API calls: {ai_stats.get('api_calls', 0)}
+  • Errors: {ai_stats.get('errors', 0)}
+  • Provider: {ai_stats.get('provider', 'Not initialized')}
+
+Cache Hit Rate: {(ai_stats.get('cache_hits', 0) / max(ai_stats.get('total_requests', 1), 1) * 100):.1f}%
+"""
+            
+            QMessageBox.information(self, "AI Statistics", msg)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to get statistics:\n{str(e)}")
+    
+    # ==================== End AI Code Assistant Features ====================
     
     def closeEvent(self, event):
         """Handle window close"""

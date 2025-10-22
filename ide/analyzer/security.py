@@ -5,6 +5,7 @@ Prevents code execution, path traversal, and resource exhaustion
 import os
 import html
 from pathlib import Path
+from typing import Tuple
 
 # Security limits
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB per file
@@ -142,7 +143,7 @@ class SecurityValidator:
         self.files_processed = 0
         self.nodes_created = 0
     
-    def validate_file(self, filepath: str) -> tuple[bool, str]:
+    def validate_file(self, filepath: str) -> Tuple[bool, str]:
         """
         Validate if file can be safely analyzed
         
@@ -172,7 +173,7 @@ class SecurityValidator:
         self.files_processed += 1
         return True, ""
     
-    def validate_node_creation(self) -> tuple[bool, str]:
+    def validate_node_creation(self) -> Tuple[bool, str]:
         """
         Validate if new node can be created
         

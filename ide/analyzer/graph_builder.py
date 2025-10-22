@@ -48,6 +48,9 @@ class CallGraph:
         
         total_nodes = len(self.nodes)
         total_edges = sum(len(calls) for calls in self.edges.values())
+        loc_values = [info.loc for info in self.nodes.values() if info.loc]
+        avg_loc = sum(loc_values) / len(loc_values) if loc_values else 0
+        max_loc = max(loc_values) if loc_values else 0
         
         # Find nodes with most connections
         node_degrees = {
@@ -62,14 +65,18 @@ class CallGraph:
         
         # Count async functions
         async_count = sum(1 for func in self.nodes.values() if func.is_async)
+        method_count = sum(1 for func in self.nodes.values() if func.is_method)
         
         self._stats = {
             'total_functions': total_nodes,
             'total_calls': total_edges,
             'async_functions': async_count,
+            'methods': method_count,
             'isolated_functions': len(isolated),
             'top_connected': top_connected[:5],
-            'average_calls_per_function': total_edges / total_nodes if total_nodes > 0 else 0
+            'average_calls_per_function': total_edges / total_nodes if total_nodes > 0 else 0,
+            'average_loc': avg_loc,
+            'max_loc': max_loc
         }
         
         return self._stats

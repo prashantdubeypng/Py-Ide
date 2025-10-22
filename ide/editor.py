@@ -23,7 +23,7 @@ class LineNumberArea(QWidget):
 
 
 class PythonHighlighter(QSyntaxHighlighter):
-    """Python syntax highlighter with PyCharm colors"""
+    """Python syntax highlighter  colors"""
     
     def __init__(self, document):
         super().__init__(document)
@@ -104,7 +104,8 @@ class CodeEditor(QPlainTextEdit):
     def __init__(self, parent_ide=None):
         super().__init__()
         self.parent_ide = parent_ide
-        
+        self.highlighter = PythonHighlighter(self.document())
+
         # Line numbers
         self.lineNumberArea = LineNumberArea(self)
         self.blockCountChanged.connect(self.updateLineNumberAreaWidth)

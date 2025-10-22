@@ -20,7 +20,6 @@ class SettingsManager:
             "theme": "dark",
             "font_size": 12,
             "font_family": "Consolas",
-            "ai_api_key": "",
             "autosave_enabled": True,
             "autosave_interval": 1000,
             "recent_files": [],
@@ -29,6 +28,12 @@ class SettingsManager:
             "terminal_visible": True,
             "linting_enabled": True,
             "autocomplete_enabled": True,
+            "ai": {
+                "default_provider": "openai",
+                "temperature": 0.2,
+                "max_tokens": 512,
+                "cache_enabled": True
+            }
         }
         
         self.settings = self.load_settings()
@@ -75,3 +80,16 @@ class SettingsManager:
     def get_recent_files(self):
         """Get list of recent files"""
         return self.settings.get("recent_files", [])
+
+    # ------------------------------------------------------------------
+    # AI configuration helpers
+    # ------------------------------------------------------------------
+    def get_ai_settings(self) -> dict:
+        """Return AI settings dictionary."""
+        return self.settings.get("ai", {}).copy()
+
+    def update_ai_settings(self, **kwargs):
+        ai_settings = self.settings.get("ai", {}).copy()
+        ai_settings.update(kwargs)
+        self.settings["ai"] = ai_settings
+        self.save_settings()

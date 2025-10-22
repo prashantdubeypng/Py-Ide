@@ -23,7 +23,7 @@ class GraphViewer(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
         
         # Title
-        title = QLabel("📊 Function Flow Graph")
+        title = QLabel("Function Flow Graph")
         title.setFont(QFont("Segoe UI", 16, QFont.Bold))
         title.setStyleSheet("color: #6A8759; padding: 10px;")
         title.setAlignment(Qt.AlignCenter)
