@@ -556,11 +556,13 @@ class IDE(QMainWindow):
                 self.statusBar().showMessage("AI settings updated successfully")
                 logger.info("AI settings updated")
         except Exception as e:
-            logger.error(f"Error opening AI settings: {e}")
+            import traceback
+            error_details = traceback.format_exc()
+            logger.error(f"Error opening AI settings: {e}\n{error_details}")
             QMessageBox.warning(
                 self,
                 "Settings Error",
-                f"Failed to open AI settings: {str(e)}"
+                f"Failed to open AI settings:\n{str(e)}\n\nCheck logs for details."
             )
     
     def on_ai_settings_changed(self):

@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
+from ide.utils.logger import logger
+
 try:
     from cryptography.fernet import Fernet
 except ImportError as exc:  # pragma: no cover
@@ -74,7 +76,12 @@ class SecretManager:
         """Decrypt a previously encrypted value."""
         if not value:
             return ""
-        return self._get_fernet().decrypt(value.encode("utf-8")).decode("utf-8")
+        try:
+            return self._get_fernet().decrypt(value.encode("utf-8")).decode("utf-8")
+        except Exception as e:
+            # If decryption fails (wrong key, corrupted data), return empty string
+            logger.warning(f"Failed to decrypt value: {e}. Returning empty string.")
+            return ""
 
     def set_secret(self, name: str, value: str) -> None:
         """Encrypt and persist a secret for a provider."""
@@ -93,9 +100,13 @@ class SecretManager:
         secret_path = self._base_dir / f"{name.lower()}.bin"
         if not secret_path.exists():
             return ""
-        with open(secret_path, "r", encoding="utf-8") as fh:
-            encrypted = fh.read().strip()
-        return self.decrypt(encrypted)
+        try:
+            with open(secret_path, "r", encoding="utf-8") as fh:
+                encrypted = fh.read().strip()
+            return self.decrypt(encrypted)
+        except Exception as e:
+            logger.warning(f"Failed to read secret '{name}': {e}. Returning empty string.")
+            return ""
 
     def delete_secret(self, name: str) -> None:
         secret_path = self._base_dir / f"{name.lower()}.bin"
