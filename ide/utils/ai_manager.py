@@ -37,22 +37,84 @@ class AIProvider(ABC):
 
 
 class OpenAIProvider(AIProvider):
-    """OpenAI API provider"""
+    """OpenAI API provider using official SDK"""
     
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key, **kwargs)
-        self.base_url = "https://api.openai.com/v1"
-        self.model = kwargs.get("model", "gpt-3.5-turbo")
+        self.model = kwargs.get("model", "gpt-4")
+        self._client = None
+    
+    def _get_client(self):
+        """Lazy initialization of OpenAI client"""
+        if self._client is None:
+            try:
+                from openai import OpenAI
+                self._client = OpenAI(api_key=self.api_key)
+            except ImportError:
+                raise ImportError("OpenAI SDK not installed. Install with: pip install openai")
+        return self._client
     
     async def generate(self, prompt: str, context: Optional[str] = None) -> str:
-        """Generate response using OpenAI API"""
+        """Generate response using OpenAI SDK"""
         try:
-            import httpx
+            client = self._get_client()
             
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
-            }
+            # Check if Responses API is available (for newer models)
+            try:
+                # Try Responses API format first
+                input_messages = []
+                
+                if context:
+                    input_messages.append({
+                        "role": "developer",
+                        "content": context
+                    })
+                
+                input_messages.append({
+                    "role": "user",
+                    "content": prompt
+                })
+                
+                kwargs = {
+                    "model": self.model,
+                    "input": input_messages,
+                    "temperature": self.temperature,
+                    "max_tokens": self.max_tokens
+                }
+                
+                # Add reasoning for reasoning models
+                if self.model.startswith(("o3", "gpt-5")):
+                    kwargs["reasoning"] = {"effort": "medium"}
+                
+                response = client.responses.create(**kwargs)
+                
+                # Extract output text
+                if hasattr(response, 'output_text'):
+                    return response.output_text.strip()
+                
+                # Fallback to parsing output array
+                text_parts = []
+                for item in response.output:
+                    if item.type == "message":
+                        for content_item in item.content:
+                            if content_item.type == "output_text":
+                                text_parts.append(content_item.text)
+                
+                return " ".join(text_parts).strip()
+                
+            except (AttributeError, Exception) as e:
+                # Fallback to Chat Completions API
+                logger.info(f"Using Chat Completions API (Responses API unavailable): {e}")
+                return await self._chat_completions(prompt, context)
+        
+        except Exception as e:
+            logger.error(f"OpenAI API error: {e}")
+            raise
+    
+    async def _chat_completions(self, prompt: str, context: Optional[str] = None) -> str:
+        """Use Chat Completions API"""
+        try:
+            client = self._get_client()
             
             messages = []
             if context:
@@ -60,67 +122,23 @@ class OpenAIProvider(AIProvider):
                     "role": "system",
                     "content": context
                 })
+            
             messages.append({
                 "role": "user",
                 "content": prompt
             })
             
-            payload = {
-                "model": self.model,
-                "messages": messages,
-                "temperature": self.temperature,
-                "max_tokens": self.max_tokens
-            }
-            
-            async with httpx.AsyncClient(timeout=30) as client:
-                response = await client.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=headers,
-                    json=payload
-                )
-                response.raise_for_status()
-                data = response.json()
-                return data["choices"][0]["message"]["content"].strip()
-        
-        except ImportError:
-            logger.warning("httpx not installed, using sync fallback for OpenAI")
-            return await self._sync_fallback(prompt, context)
-        except Exception as e:
-            logger.error(f"OpenAI API error: {e}")
-            raise
-    
-    async def _sync_fallback(self, prompt: str, context: Optional[str] = None) -> str:
-        """Fallback using requests library if httpx unavailable"""
-        try:
-            import requests
-            
-            headers = {
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            messages = []
-            if context:
-                messages.append({"role": "system", "content": context})
-            messages.append({"role": "user", "content": prompt})
-            
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers=headers,
-                json={
-                    "model": self.model,
-                    "messages": messages,
-                    "temperature": self.temperature,
-                    "max_tokens": self.max_tokens
-                },
-                timeout=30
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens
             )
-            response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"].strip()
-        except ImportError:
-            return "⚠️ httpx and requests not installed. Install with: pip install httpx requests"
+            
+            return response.choices[0].message.content.strip()
+            
         except Exception as e:
-            logger.error(f"OpenAI fallback error: {e}")
+            logger.error(f"Chat Completions error: {e}")
             raise
     
     def validate_key(self) -> bool:
