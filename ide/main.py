@@ -4,6 +4,7 @@ Modular, high-performance architecture with threading and persistence
 """
 import sys
 import os
+import time
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QTabWidget, QToolBar, QAction, QFileDialog, QMessageBox,
@@ -15,6 +16,11 @@ from PyQt5.QtCore import Qt, QTimer, QProcess, QUrl
 # Import modular components
 from ide.editor import CodeEditor, PythonHighlighter, LintHighlighter
 from ide.terminal import TerminalWidget
+# Try to import pywinpty-based terminal, fall back to simple version
+try:
+    from ide.interactive_terminal import InteractiveTerminalWidget
+except Exception:
+    from ide.interactive_terminal_simple import SimpleInteractiveTerminal as InteractiveTerminalWidget
 from ide.explorer import FileExplorer
 from ide.utils.settings import SettingsManager
 from ide.utils.logger import logger
@@ -97,8 +103,19 @@ class IDE(QMainWindow):
         self.create_new_editor_tab("Untitled")
         
         # === Terminal ===
+        # Create tab widget for terminals
+        self.terminal_tabs = QTabWidget()
+        self.terminal_tabs.setTabPosition(QTabWidget.South)
+        
+        # Old terminal (output only)
         self.terminal = TerminalWidget(self.project_dir, self)
-        self.terminal.setVisible(self.settings.get("terminal_visible", True))
+        self.terminal_tabs.addTab(self.terminal, "Output")
+        
+        # New interactive terminal
+        self.interactive_terminal = InteractiveTerminalWidget(self)
+        self.terminal_tabs.addTab(self.interactive_terminal, "Interactive")
+        
+        self.terminal_tabs.setVisible(self.settings.get("terminal_visible", True))
         
         # === AI Chat Panel ===
         self.ai_chat_panel = AIChatPanel(self.settings, parent_ide=self)
@@ -108,7 +125,7 @@ class IDE(QMainWindow):
         # === Vertical Splitter (Editor | Terminal) ===
         editor_splitter = QSplitter(Qt.Vertical)
         editor_splitter.addWidget(self.tab_widget)
-        editor_splitter.addWidget(self.terminal)
+        editor_splitter.addWidget(self.terminal_tabs)
         editor_splitter.setSizes([500, 150])
         
         # === Main Splitter (Navbar | Explorer | Editor | AI Chat) - VS Code style ===
@@ -340,6 +357,25 @@ class IDE(QMainWindow):
         run_action.triggered.connect(self.run_code)
         run_menu.addAction(run_action)
         
+        run_interactive_action = QAction("▶️ Run in Interactive Terminal", self)
+        run_interactive_action.setShortcut("Ctrl+F10")
+        run_interactive_action.setToolTip("Run in interactive terminal (supports input())")
+        run_interactive_action.triggered.connect(self.run_in_interactive_terminal)
+        run_menu.addAction(run_interactive_action)
+        
+        run_trace_action = QAction("🔍 Run with Trace", self)
+        run_trace_action.setShortcut("Ctrl+Shift+F10")
+        run_trace_action.setToolTip("Run with live function tracing and visualization")
+        run_trace_action.triggered.connect(self.run_with_trace)
+        run_menu.addAction(run_trace_action)
+        
+        run_menu.addSeparator()
+        
+        view_trace_action = QAction("📊 View Last Trace", self)
+        view_trace_action.setToolTip("Visualize the most recent execution trace")
+        view_trace_action.triggered.connect(self.view_last_trace)
+        run_menu.addAction(view_trace_action)
+        
         # AI Tools menu
         ai_menu = menubar.addMenu("AI Tools")
         
@@ -534,8 +570,8 @@ class IDE(QMainWindow):
     
     def toggle_terminal(self):
         """Toggle terminal visibility"""
-        visible = not self.terminal.isVisible()
-        self.terminal.setVisible(visible)
+        visible = not self.terminal_tabs.isVisible()
+        self.terminal_tabs.setVisible(visible)
         self.settings.set("terminal_visible", visible)
         self.statusBar().showMessage("Terminal " + ("opened" if visible else "closed"))
     
@@ -826,10 +862,321 @@ class IDE(QMainWindow):
         if exit_code == 0:
             self.terminal.output.append("<br><span style='color:#6A8759;'>Process finished with exit code 0</span>")
             self.statusBar().showMessage("Execution completed successfully")
+            
+            # If this was a traced execution, offer to view the trace
+            if hasattr(self, 'current_trace_path') and os.path.exists(self.current_trace_path):
+                self.terminal.output.append(
+                    f"<br><span style='color:#6A8759;'>📊 Trace saved: {os.path.basename(self.current_trace_path)}</span>"
+                )
+                self.terminal.output.append(
+                    "<span style='color:#A9B7C6;'>Use 'View Last Trace' from Run menu to visualize</span>"
+                )
         else:
             self.terminal.output.append(f"<br><span style='color:#BC3F3C;'>Process finished with exit code {exit_code}</span>")
             self.statusBar().showMessage("Execution completed with errors")
         logger.info(f"Process finished with exit code {exit_code}")
+    
+    def view_last_trace(self):
+        """Visualize the last execution trace"""
+        if not hasattr(self, 'current_trace_path') or not os.path.exists(self.current_trace_path):
+            QMessageBox.information(
+                self,
+                "No Trace Available",
+                "No trace data found.\n\n"
+                "To generate a trace:\n"
+                "1. Open a Python file (without input() calls)\n"
+                "2. Press Ctrl+Shift+F10 (Run with Trace)\n"
+                "3. After execution, use this option to visualize\n\n"
+                "Note: Scripts with input() cannot be traced.\n"
+                "Use test_trace_demo.py as an example."
+            )
+            return
+        
+        try:
+            import json
+            from ide.runtime_tracer import TraceReplay
+            
+            # Load trace data
+            with open(self.current_trace_path, 'r') as f:
+                trace_data = json.load(f)
+            
+            events = trace_data.get('events', [])
+            stats = trace_data.get('stats', {})
+            
+            if not events:
+                QMessageBox.information(self, "Empty Trace", "The trace file contains no events.")
+                return
+            
+            # Show trace statistics in terminal
+            if not self.terminal.isVisible():
+                self.terminal.setVisible(True)
+            
+            self.terminal.output.clear()
+            self.terminal.output.append("<span style='color:#6A8759;'>📊 Trace Statistics</span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>File: {os.path.basename(self.current_trace_path)}</span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>Total events: {len(events)}</span>")
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>Functions traced: {len(stats)}</span>")
+            self.terminal.output.append("<br><span style='color:#6A8759;'>Top Functions by Call Count:</span>")
+            
+            # Sort by call count
+            sorted_stats = sorted(stats.items(), key=lambda x: x[1].get('call_count', 0), reverse=True)[:15]
+            
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>{'Function':<35} {'Calls':<8} {'Total(ms)':<12} {'Avg(ms)':<10}</span>")
+            self.terminal.output.append("<span style='color:#555555;'>" + "-" * 70 + "</span>")
+            
+            for func_name, data in sorted_stats:
+                call_count = data.get('call_count', 0)
+                total_time = data.get('total_time', 0) * 1000  # Convert to ms
+                avg_time = (total_time / call_count) if call_count > 0 else 0
+                
+                # Color code by performance
+                if avg_time > 10:
+                    color = "#BC3F3C"  # Red for slow
+                elif avg_time > 1:
+                    color = "#CC7832"  # Orange for medium
+                else:
+                    color = "#6A8759"  # Green for fast
+                
+                self.terminal.output.append(
+                    f"<span style='color:{color};'>{func_name[:35]:<35} {call_count:<8} {total_time:<12.2f} {avg_time:<10.2f}</span>"
+                )
+            
+            self.statusBar().showMessage(f"Loaded trace: {os.path.basename(self.current_trace_path)}")
+            
+            # Ask user if they want to visualize the call graph
+            reply = QMessageBox.question(
+                self,
+                "Visualize Trace",
+                "Do you want to create an interactive call graph visualization with trace overlay?",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.Yes
+            )
+            
+            if reply == QMessageBox.Yes:
+                self._create_trace_visualization(trace_data)
+            
+        except Exception as e:
+            logger.error(f"Error viewing trace: {e}")
+            import traceback
+            traceback.print_exc()
+            QMessageBox.warning(
+                self,
+                "Trace Error",
+                f"Failed to load trace:\n{str(e)}"
+            )
+    
+    def _create_trace_visualization(self, trace_data: dict):
+        """Create interactive call graph with trace overlay"""
+        try:
+            self.terminal.output.append("<br><span style='color:#6A8759;'>📊 Creating trace visualization...</span>")
+            
+            # Determine which file/directory to analyze
+            # Option 1: Analyze the traced file's directory
+            traced_file = self.current_file
+            if traced_file and os.path.exists(traced_file):
+                analyze_dir = os.path.dirname(traced_file)
+            else:
+                analyze_dir = self.project_dir
+            
+            # Run flow analysis on the directory
+            analyzer = FunctionFlowAnalyzer()
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>Analyzing: {analyze_dir}</span>")
+            functions = analyzer.analyze_project(analyze_dir)
+            
+            if not functions:
+                self.terminal.output.append("<span style='color:#CC7832;'>⚠️ No functions found to visualize</span>")
+                return
+            
+            # Build call graph
+            builder = GraphBuilder()
+            graph = builder.build_from_functions(functions)
+            
+            self.terminal.output.append(f"<span style='color:#A9B7C6;'>✓ Built graph with {len(functions)} functions</span>")
+            
+            # Get AI explanations if available
+            ai_explanations = {}
+            if self.settings.get("flow_ai_enabled", True):
+                try:
+                    self.terminal.output.append("<span style='color:#A9B7C6;'>🤖 Generating AI insights...</span>")
+                    
+                    # Generate explanations for functions that were actually executed
+                    trace_stats = trace_data.get('stats', {})
+                    executed_functions = [name for name, stats in trace_stats.items() if stats.get('call_count', 0) > 0]
+                    
+                    for func_name in executed_functions[:10]:  # Limit to top 10 for speed
+                        if func_name in [f.name for f in functions]:
+                            func = next((f for f in functions if f.name == func_name), None)
+                            if func:
+                                explanation = self.graph_ai_assistant.get_node_explanation(func_name, func.signature or "", func.docstring or "")
+                                if explanation:
+                                    ai_explanations[func_name] = explanation
+                    
+                    self.terminal.output.append(f"<span style='color:#A9B7C6;'>✓ Generated {len(ai_explanations)} AI explanations</span>")
+                except Exception as e:
+                    logger.error(f"Error generating AI explanations: {e}")
+                    self.terminal.output.append(f"<span style='color:#CC7832;'>⚠️ AI explanations unavailable: {str(e)}</span>")
+            
+            # Create visualization with trace overlay
+            visualizer = Visualizer()
+            html_path = visualizer.render_with_trace_overlay(
+                graph,
+                trace_data,
+                ai_explanations=ai_explanations if ai_explanations else None,
+                output_filename="traced_flow.html"
+            )
+            
+            self.terminal.output.append(f"<span style='color:#6A8759;'>✓ Visualization created!</span>")
+            
+            # Open in IDE's web view
+            self._open_visualization(html_path)
+            
+        except Exception as e:
+            logger.error(f"Error creating trace visualization: {e}")
+            import traceback
+            traceback.print_exc()
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>❌ Visualization error: {str(e)}</span>")
+    
+    def _open_visualization(self, html_path: str):
+        """Open visualization in browser"""
+        try:
+            import webbrowser
+            self.terminal.output.append("<span style='color:#A9B7C6;'>🌐 Opening visualization in browser...</span>")
+            webbrowser.open(f"file:///{html_path.replace(os.sep, '/')}")
+            self.statusBar().showMessage("Trace visualization opened in browser")
+        except Exception as e:
+            logger.error(f"Error opening visualization: {e}")
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>❌ Failed to open browser: {str(e)}</span>")
+    
+    def run_in_interactive_terminal(self):
+        """Run current file in the interactive terminal"""
+        if not self.current_file:
+            QMessageBox.warning(
+                self,
+                "No File",
+                "Please save the current file before running."
+            )
+            return
+        
+        # Autosave
+        self.auto_save_file()
+        
+        # Show terminal and switch to interactive tab
+        if not self.terminal_tabs.isVisible():
+            self.terminal_tabs.setVisible(True)
+        self.terminal_tabs.setCurrentWidget(self.interactive_terminal)
+        
+        # Build command using interactive_runner.py wrapper for UTF-8 support
+        python_exe = sys.executable
+        wrapper_script = os.path.join(os.path.dirname(__file__), 'interactive_runner.py')
+        
+        # Check if wrapper exists
+        if not os.path.exists(wrapper_script):
+            logger.warning(f"Wrapper script not found: {wrapper_script}")
+            # Fallback to direct execution
+            command = f'"{python_exe}" -u "{self.current_file}"'
+        else:
+            command = f'"{python_exe}" -u "{wrapper_script}" "{self.current_file}"'
+            logger.info(f"Using wrapper: {wrapper_script}")
+        
+        working_dir = os.path.dirname(self.current_file)
+        
+        # Run in interactive terminal
+        self.interactive_terminal.run_command(command, working_dir)
+        
+        self.statusBar().showMessage(f"Running {os.path.basename(self.current_file)} in interactive terminal...")
+        logger.info(f"Running in interactive terminal: {self.current_file}")
+    
+    def run_with_trace(self):
+        """Run current file with live tracing enabled"""
+        # Must have a saved file to trace
+        if not self.current_file:
+            QMessageBox.warning(
+                self,
+                "No File",
+                "Please save the current file before running with trace."
+            )
+            return
+        
+        # Check if file contains input() calls
+        try:
+            with open(self.current_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                if 'input(' in content:
+                    reply = QMessageBox.information(
+                        self,
+                        "Interactive Input Detected",
+                        "This script uses input() which cannot be traced.\n\n"
+                        "Tracing requires capturing function calls, but interactive\n"
+                        "input blocks the tracer and prevents visualization.\n\n"
+                        "Options:\n"
+                        "• Click 'OK' to run in Interactive Terminal (no trace)\n"
+                        "• Click 'Cancel' to modify code and remove input()\n\n"
+                        "Tip: Use Ctrl+F10 to run scripts with input() normally.",
+                        QMessageBox.Ok | QMessageBox.Cancel,
+                        QMessageBox.Ok
+                    )
+                    if reply == QMessageBox.Ok:
+                        # Run in interactive terminal instead (without tracing)
+                        self.statusBar().showMessage("Running in interactive terminal (tracing disabled for input() scripts)...")
+                        self.run_in_interactive_terminal()
+                        return
+                    else:
+                        return
+                        return
+        except Exception as e:
+            logger.warning(f"Could not check for input() calls: {e}")
+        
+        # Autosave
+        self.auto_save_file()
+        
+        # Show terminal
+        if not self.terminal.isVisible():
+            self.terminal.setVisible(True)
+        
+        self.terminal.output.clear()
+        self.terminal.output.append("<span style='color:#6A8759;'>🔍 Running with live tracing...</span>")
+        self.statusBar().showMessage("Running with trace...")
+        
+        try:
+            # Prepare trace output path
+            import tempfile
+            trace_dir = os.path.join(tempfile.gettempdir(), "py_ide_traces")
+            os.makedirs(trace_dir, exist_ok=True)
+            
+            timestamp = time.strftime("%Y%m%d_%H%M%S")
+            filename = os.path.splitext(os.path.basename(self.current_file))[0]
+            trace_path = os.path.join(trace_dir, f"trace_{filename}_{timestamp}.json")
+            
+            # Get path to traced_runner.py
+            ide_dir = os.path.dirname(os.path.abspath(__file__))
+            runner_path = os.path.join(ide_dir, "traced_runner.py")
+            
+            if not os.path.exists(runner_path):
+                raise FileNotFoundError(f"Traced runner not found: {runner_path}")
+            
+            # Kill previous process if running
+            if self.process.state() == QProcess.Running:
+                self.process.kill()
+                self.terminal.output.append("<span style='color:#BC3F3C;'>Previous process terminated.</span>")
+            
+            # Start traced execution
+            args = [runner_path, self.current_file, "--output", trace_path]
+            self.process.start(sys.executable, args)
+            self.process.setWorkingDirectory(os.path.dirname(self.current_file))
+            
+            # Store trace path for later visualization
+            self.current_trace_path = trace_path
+            
+            logger.info(f"Started traced execution: {self.current_file}")
+            
+        except Exception as e:
+            logger.error(f"Error starting traced execution: {e}")
+            self.terminal.output.append(f"<span style='color:#BC3F3C;'>❌ Trace error: {str(e)}</span>")
+            QMessageBox.warning(
+                self,
+                "Trace Error",
+                f"Failed to start traced execution:\n{str(e)}"
+            )
     
     def run_flow_analysis(self):
         """Run function flow analysis on project and display in IDE panel"""

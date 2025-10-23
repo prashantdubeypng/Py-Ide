@@ -1,0 +1,2302 @@
+{
+  "events": [
+    {
+      "event": "call",
+      "func": "info",
+      "module": "ide.utils.logger",
+      "filename": "C:\\Users\\Hp\\PycharmProjects\\DTC\\ide\\utils\\logger.py",
+      "lineno": 64,
+      "time": 8.153915405273438e-05,
+      "caller": null
+    },
+    {
+      "event": "call",
+      "func": "info",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1509,
+      "time": 0.00011324882507324219,
+      "caller": "info"
+    },
+    {
+      "event": "call",
+      "func": "isEnabledFor",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1764,
+      "time": 0.0001316070556640625,
+      "caller": "info"
+    },
+    {
+      "event": "return",
+      "func": "isEnabledFor",
+      "time": 0.00014209747314453125,
+      "duration": 9.5367431640625e-06
+    },
+    {
+      "event": "call",
+      "func": "findCaller",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1591,
+      "time": 0.0001773834228515625,
+      "caller": "info"
+    },
+    {
+      "event": "call",
+      "func": "<lambda>",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 167,
+      "time": 0.0001842975616455078,
+      "caller": "findCaller"
+    },
+    {
+      "event": "return",
+      "func": "<lambda>",
+      "time": 0.00019073486328125,
+      "duration": 5.9604644775390625e-06
+    },
+    {
+      "event": "return",
+      "func": "findCaller",
+      "time": 0.00026416778564453125,
+      "duration": 8.654594421386719e-05
+    },
+    {
+      "event": "call",
+      "func": "makeRecord",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1625,
+      "time": 0.00027632713317871094,
+      "caller": "info"
+    },
+    {
+      "event": "call",
+      "func": "__init__",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 298,
+      "time": 0.0003077983856201172,
+      "caller": "makeRecord"
+    },
+    {
+      "event": "call",
+      "func": "getLevelName",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 129,
+      "time": 0.0003199577331542969,
+      "caller": "__init__"
+    },
+    {
+      "event": "return",
+      "func": "getLevelName",
+      "time": 0.00033092498779296875,
+      "duration": 1.0728836059570312e-05
+    },
+    {
+      "event": "call",
+      "func": "current_thread",
+      "module": "threading",
+      "filename": "C:\\Python313\\Lib\\threading.py",
+      "lineno": 1427,
+      "time": 0.00041031837463378906,
+      "caller": "__init__"
+    },
+    {
+      "event": "return",
+      "func": "current_thread",
+      "time": 0.00041675567626953125,
+      "duration": 6.198883056640625e-06
+    },
+    {
+      "event": "call",
+      "func": "name",
+      "module": "threading",
+      "filename": "C:\\Python313\\Lib\\threading.py",
+      "lineno": 1094,
+      "time": 0.0004222393035888672,
+      "caller": "__init__"
+    },
+    {
+      "event": "return",
+      "func": "name",
+      "time": 0.0004277229309082031,
+      "duration": 5.4836273193359375e-06
+    },
+    {
+      "event": "return",
+      "func": "__init__",
+      "time": 0.0004565715789794922,
+      "duration": 0.000148773193359375
+    },
+    {
+      "event": "return",
+      "func": "makeRecord",
+      "time": 0.0004868507385253906,
+      "duration": 0.0002105236053466797
+    },
+    {
+      "event": "call",
+      "func": "handle",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1666,
+      "time": 0.0004971027374267578,
+      "caller": "info"
+    },
+    {
+      "event": "call",
+      "func": "filter",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 839,
+      "time": 0.0005068778991699219,
+      "caller": "handle"
+    },
+    {
+      "event": "return",
+      "func": "filter",
+      "time": 0.0005133152008056641,
+      "duration": 6.4373016357421875e-06
+    },
+    {
+      "event": "call",
+      "func": "callHandlers",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1720,
+      "time": 0.0005297660827636719,
+      "caller": "handle"
+    },
+    {
+      "event": "call",
+      "func": "handle",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1010,
+      "time": 0.0005431175231933594,
+      "caller": "callHandlers"
+    },
+    {
+      "event": "call",
+      "func": "filter",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 839,
+      "time": 0.0005462169647216797,
+      "caller": "handle"
+    },
+    {
+      "event": "return",
+      "func": "filter",
+      "time": 0.0005497932434082031,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "emit",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1250,
+      "time": 0.0005619525909423828,
+      "caller": "handle"
+    },
+    {
+      "event": "call",
+      "func": "emit",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1138,
+      "time": 0.0005817413330078125,
+      "caller": "emit"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 987,
+      "time": 0.0005886554718017578,
+      "caller": "emit"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 698,
+      "time": 0.0006043910980224609,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "getMessage",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 391,
+      "time": 0.0006103515625,
+      "caller": "format"
+    },
+    {
+      "event": "return",
+      "func": "getMessage",
+      "time": 0.0006163120269775391,
+      "duration": 5.7220458984375e-06
+    },
+    {
+      "event": "call",
+      "func": "usesTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 676,
+      "time": 0.000621795654296875,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "usesTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 455,
+      "time": 0.0006272792816162109,
+      "caller": "usesTime"
+    },
+    {
+      "event": "return",
+      "func": "usesTime",
+      "time": 0.0006315708160400391,
+      "duration": 4.291534423828125e-06
+    },
+    {
+      "event": "return",
+      "func": "usesTime",
+      "time": 0.0006341934204101562,
+      "duration": 1.2159347534179688e-05
+    },
+    {
+      "event": "call",
+      "func": "formatTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 630,
+      "time": 0.0006425380706787109,
+      "caller": "format"
+    },
+    {
+      "event": "return",
+      "func": "formatTime",
+      "time": 0.00067901611328125,
+      "duration": 3.647804260253906e-05
+    },
+    {
+      "event": "call",
+      "func": "formatMessage",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 682,
+      "time": 0.0006842613220214844,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 470,
+      "time": 0.0006911754608154297,
+      "caller": "formatMessage"
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0007064342498779297,
+      "duration": 1.52587890625e-05
+    },
+    {
+      "event": "return",
+      "func": "formatMessage",
+      "time": 0.0007090568542480469,
+      "duration": 2.4557113647460938e-05
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0007138252258300781,
+      "duration": 0.00010943412780761719
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0007169246673583984,
+      "duration": 0.00012803077697753906
+    },
+    {
+      "event": "call",
+      "func": "flush",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1130,
+      "time": 0.0007295608520507812,
+      "caller": "emit"
+    },
+    {
+      "event": "return",
+      "func": "flush",
+      "time": 0.0008332729339599609,
+      "duration": 0.00010347366333007812
+    },
+    {
+      "event": "return",
+      "func": "emit",
+      "time": 0.0008373260498046875,
+      "duration": 0.00025534629821777344
+    },
+    {
+      "event": "return",
+      "func": "emit",
+      "time": 0.0008406639099121094,
+      "duration": 0.00027871131896972656
+    },
+    {
+      "event": "return",
+      "func": "handle",
+      "time": 0.0008451938629150391,
+      "duration": 0.0003018379211425781
+    },
+    {
+      "event": "call",
+      "func": "handle",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1010,
+      "time": 0.0008509159088134766,
+      "caller": "callHandlers"
+    },
+    {
+      "event": "call",
+      "func": "filter",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 839,
+      "time": 0.0008544921875,
+      "caller": "handle"
+    },
+    {
+      "event": "return",
+      "func": "filter",
+      "time": 0.0008587837219238281,
+      "duration": 4.0531158447265625e-06
+    },
+    {
+      "event": "call",
+      "func": "emit",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1138,
+      "time": 0.0008647441864013672,
+      "caller": "handle"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 987,
+      "time": 0.0008680820465087891,
+      "caller": "emit"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 698,
+      "time": 0.0008721351623535156,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "getMessage",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 391,
+      "time": 0.0008749961853027344,
+      "caller": "format"
+    },
+    {
+      "event": "return",
+      "func": "getMessage",
+      "time": 0.0008795261383056641,
+      "duration": 4.291534423828125e-06
+    },
+    {
+      "event": "call",
+      "func": "usesTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 676,
+      "time": 0.0008831024169921875,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "usesTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 455,
+      "time": 0.0008864402770996094,
+      "caller": "usesTime"
+    },
+    {
+      "event": "return",
+      "func": "usesTime",
+      "time": 0.0008895397186279297,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "usesTime",
+      "time": 0.0008950233459472656,
+      "duration": 1.1444091796875e-05
+    },
+    {
+      "event": "call",
+      "func": "formatTime",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 630,
+      "time": 0.0008978843688964844,
+      "caller": "format"
+    },
+    {
+      "event": "return",
+      "func": "formatTime",
+      "time": 0.0009105205535888672,
+      "duration": 1.2636184692382812e-05
+    },
+    {
+      "event": "call",
+      "func": "formatMessage",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 682,
+      "time": 0.0009145736694335938,
+      "caller": "format"
+    },
+    {
+      "event": "call",
+      "func": "format",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 470,
+      "time": 0.0009174346923828125,
+      "caller": "formatMessage"
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0009255409240722656,
+      "duration": 7.867813110351562e-06
+    },
+    {
+      "event": "return",
+      "func": "formatMessage",
+      "time": 0.0009279251098632812,
+      "duration": 1.33514404296875e-05
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0009326934814453125,
+      "duration": 6.0558319091796875e-05
+    },
+    {
+      "event": "return",
+      "func": "format",
+      "time": 0.0009353160858154297,
+      "duration": 6.699562072753906e-05
+    },
+    {
+      "event": "call",
+      "func": "flush",
+      "module": "logging",
+      "filename": "C:\\Python313\\Lib\\logging\\__init__.py",
+      "lineno": 1130,
+      "time": 0.000942230224609375,
+      "caller": "emit"
+    },
+    {
+      "event": "return",
+      "func": "flush",
+      "time": 0.0010678768157958984,
+      "duration": 0.0001246929168701172
+    },
+    {
+      "event": "return",
+      "func": "emit",
+      "time": 0.0010867118835449219,
+      "duration": 0.00022149085998535156
+    },
+    {
+      "event": "return",
+      "func": "handle",
+      "time": 0.0010981559753417969,
+      "duration": 0.0002467632293701172
+    },
+    {
+      "event": "return",
+      "func": "callHandlers",
+      "time": 0.0011165142059326172,
+      "duration": 0.0005865097045898438
+    },
+    {
+      "event": "return",
+      "func": "handle",
+      "time": 0.0011246204376220703,
+      "duration": 0.0006272792816162109
+    },
+    {
+      "event": "return",
+      "func": "info",
+      "time": 0.0011425018310546875,
+      "duration": 0.0010290145874023438
+    },
+    {
+      "event": "return",
+      "func": "info",
+      "time": 0.0011501312255859375,
+      "duration": 0.0010683536529541016
+    },
+    {
+      "event": "call",
+      "func": "<module>",
+      "module": "pkgutil",
+      "filename": "C:\\Python313\\Lib\\pkgutil.py",
+      "lineno": 0,
+      "time": 0.005452632904052734,
+      "caller": null
+    },
+    {
+      "event": "call",
+      "func": "namedtuple",
+      "module": "collections",
+      "filename": "C:\\Python313\\Lib\\collections\\__init__.py",
+      "lineno": 358,
+      "time": 0.005585193634033203,
+      "caller": "<module>"
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "collections",
+      "filename": "C:\\Python313\\Lib\\collections\\__init__.py",
+      "lineno": 432,
+      "time": 0.005640268325805664,
+      "caller": "namedtuple"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.005647182464599609,
+      "duration": 6.67572021484375e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "collections",
+      "filename": "C:\\Python313\\Lib\\collections\\__init__.py",
+      "lineno": 432,
+      "time": 0.005652189254760742,
+      "caller": "namedtuple"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.005655765533447266,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "collections",
+      "filename": "C:\\Python313\\Lib\\collections\\__init__.py",
+      "lineno": 432,
+      "time": 0.00565791130065918,
+      "caller": "namedtuple"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.005660295486450195,
+      "duration": 2.384185791015625e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "collections",
+      "filename": "C:\\Python313\\Lib\\collections\\__init__.py",
+      "lineno": 432,
+      "time": 0.005662441253662109,
+      "caller": "namedtuple"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.0056645870208740234,
+      "duration": 2.1457672119140625e-06
+    },
+    {
+      "event": "return",
+      "func": "namedtuple",
+      "time": 0.0058746337890625,
+      "duration": 0.00028896331787109375
+    },
+    {
+      "event": "call",
+      "func": "singledispatch",
+      "module": "functools",
+      "filename": "C:\\Python313\\Lib\\functools.py",
+      "lineno": 826,
+      "time": 0.005902528762817383,
+      "caller": "<module>"
+    },
+    {
+      "event": "call",
+      "func": "__init__",
+      "module": "weakref",
+      "filename": "C:\\Python313\\Lib\\weakref.py",
+      "lineno": 367,
+      "time": 0.005917787551879883,
+      "caller": "singledispatch"
+    },
+    {
+      "event": "return",
+      "func": "__init__",
+      "time": 0.005930423736572266,
+      "duration": 1.2159347534179688e-05
+    },
+    {
+      "event": "call",
+      "func": "update_wrapper",
+      "module": "functools",
+      "filename": "C:\\Python313\\Lib\\functools.py",
+      "lineno": 36,
+      "time": 0.00595545768737793,
+      "caller": "singledispatch"
+    },
+    {
+      "event": "return",
+      "func": "update_wrapper",
+      "time": 0.005980491638183594,
+      "duration": 2.5033950805664062e-05
+    },
+    {
+      "event": "return",
+      "func": "singledispatch",
+      "time": 0.0059850215911865234,
+      "duration": 8.225440979003906e-05
+    },
+    {
+      "event": "call",
+      "func": "register",
+      "module": "functools",
+      "filename": "C:\\Python313\\Lib\\functools.py",
+      "lineno": 878,
+      "time": 0.006010532379150391,
+      "caller": "<module>"
+    },
+    {
+      "event": "call",
+      "func": "get_origin",
+      "module": "typing",
+      "filename": "C:\\Python313\\Lib\\typing.py",
+      "lineno": 2528,
+      "time": 0.006049394607543945,
+      "caller": "register"
+    },
+    {
+      "event": "return",
+      "func": "get_origin",
+      "time": 0.006060361862182617,
+      "duration": 1.0728836059570312e-05
+    },
+    {
+      "event": "call",
+      "func": "popitem",
+      "module": "weakref",
+      "filename": "C:\\Python313\\Lib\\weakref.py",
+      "lineno": 495,
+      "time": 0.006078958511352539,
+      "caller": "register"
+    },
+    {
+      "event": "return",
+      "func": "popitem",
+      "time": 0.006093025207519531,
+      "duration": 1.4066696166992188e-05
+    },
+    {
+      "event": "return",
+      "func": "register",
+      "time": 0.006100893020629883,
+      "duration": 9.036064147949219e-05
+    },
+    {
+      "event": "call",
+      "func": "register",
+      "module": "functools",
+      "filename": "C:\\Python313\\Lib\\functools.py",
+      "lineno": 878,
+      "time": 0.006113767623901367,
+      "caller": "<module>"
+    },
+    {
+      "event": "call",
+      "func": "get_origin",
+      "module": "typing",
+      "filename": "C:\\Python313\\Lib\\typing.py",
+      "lineno": 2528,
+      "time": 0.0061266422271728516,
+      "caller": "register"
+    },
+    {
+      "event": "return",
+      "func": "get_origin",
+      "time": 0.006139278411865234,
+      "duration": 1.2636184692382812e-05
+    },
+    {
+      "event": "call",
+      "func": "popitem",
+      "module": "weakref",
+      "filename": "C:\\Python313\\Lib\\weakref.py",
+      "lineno": 495,
+      "time": 0.0061490535736083984,
+      "caller": "register"
+    },
+    {
+      "event": "return",
+      "func": "popitem",
+      "time": 0.006155252456665039,
+      "duration": 6.198883056640625e-06
+    },
+    {
+      "event": "return",
+      "func": "register",
+      "time": 0.0061609745025634766,
+      "duration": 4.696846008300781e-05
+    },
+    {
+      "event": "return",
+      "func": "<module>",
+      "time": 0.006170511245727539,
+      "duration": 0.0007176399230957031
+    },
+    {
+      "event": "call",
+      "func": "get_importer",
+      "module": "pkgutil",
+      "filename": "C:\\Python313\\Lib\\pkgutil.py",
+      "lineno": 212,
+      "time": 0.0062253475189208984,
+      "caller": null
+    },
+    {
+      "event": "return",
+      "func": "get_importer",
+      "time": 0.006875276565551758,
+      "duration": 0.0006494522094726562
+    },
+    {
+      "event": "call",
+      "func": "read_code",
+      "module": "pkgutil",
+      "filename": "C:\\Python313\\Lib\\pkgutil.py",
+      "lineno": 26,
+      "time": 0.006981849670410156,
+      "caller": null
+    },
+    {
+      "event": "return",
+      "func": "read_code",
+      "time": 0.007035732269287109,
+      "duration": 5.340576171875e-05
+    },
+    {
+      "event": "call",
+      "func": "<module>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 0,
+      "time": 0.007849693298339844,
+      "caller": null
+    },
+    {
+      "event": "call",
+      "func": "main",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 50,
+      "time": 0.007873773574829102,
+      "caller": "<module>"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007898330688476562,
+      "caller": "main"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007902860641479492,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007906198501586914,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007909059524536133,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00791168212890625,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007914066314697266,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007916688919067383,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.0079193115234375,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007922887802124023,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007926225662231445,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007929563522338867,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007932186126708984,
+      "duration": 1.52587890625e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007934331893920898,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007936954498291016,
+      "duration": 2.6226043701171875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00793910026550293,
+      "duration": 2.5033950805664062e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00794076919555664,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007943391799926758,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007946252822875977,
+      "duration": 2.86102294921875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007947683334350586,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007950544357299805,
+      "duration": 2.86102294921875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007952213287353516,
+      "duration": 1.1444091796875e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007954120635986328,
+      "duration": 4.2438507080078125e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007955789566040039,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007958412170410156,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00796365737915039,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00796651840209961,
+      "duration": 2.86102294921875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007968425750732422,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007971048355102539,
+      "duration": 2.6226043701171875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007972955703735352,
+      "duration": 1.430511474609375e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007974624633789062,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007977485656738281,
+      "duration": 2.6226043701171875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007979154586791992,
+      "duration": 2.3126602172851562e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.007981300354003906,
+      "duration": 7.224082946777344e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007984399795532227,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007987499237060547,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007990837097167969,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007993698120117188,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00799703598022461,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.007999420166015625,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008002519607543945,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008004903793334961,
+      "duration": 1.4066696166992188e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008006811141967773,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008010149002075195,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008012771606445312,
+      "duration": 2.5033950805664062e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008014678955078125,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008018016815185547,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00802159309387207,
+      "duration": 3.5762786865234375e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008023977279663086,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008027315139770508,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00803065299987793,
+      "duration": 1.5974044799804688e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008033037185668945,
+      "duration": 4.863739013671875e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00803518295288086,
+      "duration": 0.00012874603271484375
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008037328720092773,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008040666580200195,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008043766021728516,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008047342300415039,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00805044174194336,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00805354118347168,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008055686950683594,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008061408996582031,
+      "duration": 5.4836273193359375e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008064031600952148,
+      "duration": 1.6450881958007812e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008065938949584961,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008071422576904297,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008073568344116211,
+      "duration": 2.9802322387695312e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008075952529907227,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008079290390014648,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00808262825012207,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008084774017333984,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008088350296020508,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00809025764465332,
+      "duration": 1.430511474609375e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008092641830444336,
+      "duration": 5.1975250244140625e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008095026016235352,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008098125457763672,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008101224899291992,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008104562759399414,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00810694694519043,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008110284805297852,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008112668991088867,
+      "duration": 1.430511474609375e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00811457633972168,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008118152618408203,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008120536804199219,
+      "duration": 2.5272369384765625e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008122920989990234,
+      "duration": 8.511543273925781e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008124828338623047,
+      "duration": 0.0002219676971435547
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00812983512878418,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008133172988891602,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008136749267578125,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008140087127685547,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008142948150634766,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008146047592163086,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008149385452270508,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008151769638061523,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008155345916748047,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008157730102539062,
+      "duration": 1.4543533325195312e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008159637451171875,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008162975311279297,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008165359497070312,
+      "duration": 2.5033950805664062e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008167266845703125,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008170604705810547,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008173942565917969,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008176088333129883,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008179426193237305,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00818181037902832,
+      "duration": 1.4543533325195312e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008183956146240234,
+      "duration": 4.696846008300781e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008186101913452148,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008189201354980469,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008194684982299805,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008198022842407227,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00820016860961914,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008203744888305664,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008205652236938477,
+      "duration": 1.6450881958007812e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008208036422729492,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008211135864257812,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00821375846862793,
+      "duration": 2.7418136596679688e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008215904235839844,
+      "duration": 8.249282836914062e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00821828842163086,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008221626281738281,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008224725723266602,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008228063583374023,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008231401443481445,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008233308792114258,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.00823664665222168,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008239030838012695,
+      "duration": 1.4066696166992188e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00824117660522461,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008244514465332031,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008246421813964844,
+      "duration": 2.47955322265625e-05
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00824880599975586,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.00825190544128418,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008255243301391602,
+      "duration": 3.337860107421875e-06
+    },
+    {
+      "event": "call",
+      "func": "calculate_fibonacci",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 9,
+      "time": 0.008257389068603516,
+      "caller": "calculate_fibonacci"
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008260726928710938,
+      "duration": 3.0994415283203125e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008263111114501953,
+      "duration": 1.4066696166992188e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008265256881713867,
+      "duration": 4.696846008300781e-05
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008267402648925781,
+      "duration": 0.00013756752014160156
+    },
+    {
+      "event": "return",
+      "func": "calculate_fibonacci",
+      "time": 0.008269786834716797,
+      "duration": 0.0003714561462402344
+    },
+    {
+      "event": "call",
+      "func": "process_data",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 16,
+      "time": 0.008281230926513672,
+      "caller": "main"
+    },
+    {
+      "event": "call",
+      "func": "transform_item",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 25,
+      "time": 0.008288145065307617,
+      "caller": "process_data"
+    },
+    {
+      "event": "return",
+      "func": "transform_item",
+      "time": 0.018576383590698242,
+      "duration": 0.01028585433959961
+    },
+    {
+      "event": "call",
+      "func": "transform_item",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 25,
+      "time": 0.018629789352416992,
+      "caller": "process_data"
+    },
+    {
+      "event": "return",
+      "func": "transform_item",
+      "time": 0.02892136573791504,
+      "duration": 0.010290145874023438
+    },
+    {
+      "event": "call",
+      "func": "transform_item",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 25,
+      "time": 0.02895522117614746,
+      "caller": "process_data"
+    },
+    {
+      "event": "return",
+      "func": "transform_item",
+      "time": 0.03940916061401367,
+      "duration": 0.010452747344970703
+    },
+    {
+      "event": "call",
+      "func": "transform_item",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 25,
+      "time": 0.03943634033203125,
+      "caller": "process_data"
+    },
+    {
+      "event": "return",
+      "func": "transform_item",
+      "time": 0.05038714408874512,
+      "duration": 0.010947704315185547
+    },
+    {
+      "event": "call",
+      "func": "transform_item",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 25,
+      "time": 0.05044841766357422,
+      "caller": "process_data"
+    },
+    {
+      "event": "return",
+      "func": "transform_item",
+      "time": 0.06119418144226074,
+      "duration": 0.010725259780883789
+    },
+    {
+      "event": "return",
+      "func": "process_data",
+      "time": 0.0612332820892334,
+      "duration": 0.05295157432556152
+    },
+    {
+      "event": "call",
+      "func": "analyze_numbers",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 32,
+      "time": 0.06128883361816406,
+      "caller": "main"
+    },
+    {
+      "event": "call",
+      "func": "calculate_std_dev",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 44,
+      "time": 0.06131887435913086,
+      "caller": "analyze_numbers"
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.06133627891540527,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.06134986877441406,
+      "duration": 1.33514404296875e-05
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.0613553524017334,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.0613713264465332,
+      "duration": 1.5735626220703125e-05
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.06137537956237793,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.06138181686401367,
+      "duration": 6.198883056640625e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.0613858699798584,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.06139206886291504,
+      "duration": 5.9604644775390625e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.06139636039733887,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.061402082443237305,
+      "duration": 5.4836273193359375e-06
+    },
+    {
+      "event": "call",
+      "func": "<genexpr>",
+      "module": "__main__",
+      "filename": "test_trace_demo.py",
+      "lineno": 46,
+      "time": 0.06140637397766113,
+      "caller": "calculate_std_dev"
+    },
+    {
+      "event": "return",
+      "func": "<genexpr>",
+      "time": 0.06141233444213867,
+      "duration": 5.7220458984375e-06
+    },
+    {
+      "event": "return",
+      "func": "calculate_std_dev",
+      "time": 0.061423301696777344,
+      "duration": 0.00010418891906738281
+    },
+    {
+      "event": "return",
+      "func": "analyze_numbers",
+      "time": 0.06143641471862793,
+      "duration": 0.00014734268188476562
+    },
+    {
+      "event": "return",
+      "func": "main",
+      "time": 0.06147909164428711,
+      "duration": 0.053604841232299805
+    },
+    {
+      "event": "return",
+      "func": "<module>",
+      "time": 0.061490535736083984,
+      "duration": 0.05364036560058594
+    },
+    {
+      "event": "call",
+      "func": "stop",
+      "module": "ide.runtime_tracer",
+      "filename": "C:\\Users\\Hp\\PycharmProjects\\DTC\\ide\\runtime_tracer.py",
+      "lineno": 108,
+      "time": 0.06154990196228027,
+      "caller": null
+    }
+  ],
+  "stats": {
+    "info": {
+      "call_count": 2,
+      "total_time": 0.0020973682403564453,
+      "min_time": 0.0010290145874023438,
+      "max_time": 0.0010683536529541016
+    },
+    "isEnabledFor": {
+      "call_count": 1,
+      "total_time": 9.5367431640625e-06,
+      "min_time": 9.5367431640625e-06,
+      "max_time": 9.5367431640625e-06
+    },
+    "findCaller": {
+      "call_count": 1,
+      "total_time": 8.654594421386719e-05,
+      "min_time": 8.654594421386719e-05,
+      "max_time": 8.654594421386719e-05
+    },
+    "<lambda>": {
+      "call_count": 1,
+      "total_time": 5.9604644775390625e-06,
+      "min_time": 5.9604644775390625e-06,
+      "max_time": 5.9604644775390625e-06
+    },
+    "makeRecord": {
+      "call_count": 1,
+      "total_time": 0.0002105236053466797,
+      "min_time": 0.0002105236053466797,
+      "max_time": 0.0002105236053466797
+    },
+    "__init__": {
+      "call_count": 2,
+      "total_time": 0.0001609325408935547,
+      "min_time": 1.2159347534179688e-05,
+      "max_time": 0.000148773193359375
+    },
+    "getLevelName": {
+      "call_count": 1,
+      "total_time": 1.0728836059570312e-05,
+      "min_time": 1.0728836059570312e-05,
+      "max_time": 1.0728836059570312e-05
+    },
+    "current_thread": {
+      "call_count": 1,
+      "total_time": 6.198883056640625e-06,
+      "min_time": 6.198883056640625e-06,
+      "max_time": 6.198883056640625e-06
+    },
+    "name": {
+      "call_count": 1,
+      "total_time": 5.4836273193359375e-06,
+      "min_time": 5.4836273193359375e-06,
+      "max_time": 5.4836273193359375e-06
+    },
+    "handle": {
+      "call_count": 3,
+      "total_time": 0.0011758804321289062,
+      "min_time": 0.0002467632293701172,
+      "max_time": 0.0006272792816162109
+    },
+    "filter": {
+      "call_count": 3,
+      "total_time": 1.3828277587890625e-05,
+      "min_time": 3.337860107421875e-06,
+      "max_time": 6.4373016357421875e-06
+    },
+    "callHandlers": {
+      "call_count": 1,
+      "total_time": 0.0005865097045898438,
+      "min_time": 0.0005865097045898438,
+      "max_time": 0.0005865097045898438
+    },
+    "emit": {
+      "call_count": 3,
+      "total_time": 0.0007555484771728516,
+      "min_time": 0.00022149085998535156,
+      "max_time": 0.00027871131896972656
+    },
+    "format": {
+      "call_count": 6,
+      "total_time": 0.00038814544677734375,
+      "min_time": 7.867813110351562e-06,
+      "max_time": 0.00012803077697753906
+    },
+    "getMessage": {
+      "call_count": 2,
+      "total_time": 1.0013580322265625e-05,
+      "min_time": 4.291534423828125e-06,
+      "max_time": 5.7220458984375e-06
+    },
+    "usesTime": {
+      "call_count": 4,
+      "total_time": 3.0994415283203125e-05,
+      "min_time": 3.0994415283203125e-06,
+      "max_time": 1.2159347534179688e-05
+    },
+    "formatTime": {
+      "call_count": 2,
+      "total_time": 4.9114227294921875e-05,
+      "min_time": 1.2636184692382812e-05,
+      "max_time": 3.647804260253906e-05
+    },
+    "formatMessage": {
+      "call_count": 2,
+      "total_time": 3.790855407714844e-05,
+      "min_time": 1.33514404296875e-05,
+      "max_time": 2.4557113647460938e-05
+    },
+    "flush": {
+      "call_count": 2,
+      "total_time": 0.0002281665802001953,
+      "min_time": 0.00010347366333007812,
+      "max_time": 0.0001246929168701172
+    },
+    "<module>": {
+      "call_count": 2,
+      "total_time": 0.05435800552368164,
+      "min_time": 0.0007176399230957031,
+      "max_time": 0.05364036560058594
+    },
+    "namedtuple": {
+      "call_count": 1,
+      "total_time": 0.00028896331787109375,
+      "min_time": 0.00028896331787109375,
+      "max_time": 0.00028896331787109375
+    },
+    "<genexpr>": {
+      "call_count": 10,
+      "total_time": 6.699562072753906e-05,
+      "min_time": 2.1457672119140625e-06,
+      "max_time": 1.5735626220703125e-05
+    },
+    "singledispatch": {
+      "call_count": 1,
+      "total_time": 8.225440979003906e-05,
+      "min_time": 8.225440979003906e-05,
+      "max_time": 8.225440979003906e-05
+    },
+    "update_wrapper": {
+      "call_count": 1,
+      "total_time": 2.5033950805664062e-05,
+      "min_time": 2.5033950805664062e-05,
+      "max_time": 2.5033950805664062e-05
+    },
+    "register": {
+      "call_count": 2,
+      "total_time": 0.0001373291015625,
+      "min_time": 4.696846008300781e-05,
+      "max_time": 9.036064147949219e-05
+    },
+    "get_origin": {
+      "call_count": 2,
+      "total_time": 2.3365020751953125e-05,
+      "min_time": 1.0728836059570312e-05,
+      "max_time": 1.2636184692382812e-05
+    },
+    "popitem": {
+      "call_count": 2,
+      "total_time": 2.0265579223632812e-05,
+      "min_time": 6.198883056640625e-06,
+      "max_time": 1.4066696166992188e-05
+    },
+    "get_importer": {
+      "call_count": 1,
+      "total_time": 0.0006494522094726562,
+      "min_time": 0.0006494522094726562,
+      "max_time": 0.0006494522094726562
+    },
+    "read_code": {
+      "call_count": 1,
+      "total_time": 5.340576171875e-05,
+      "min_time": 5.340576171875e-05,
+      "max_time": 5.340576171875e-05
+    },
+    "main": {
+      "call_count": 1,
+      "total_time": 0.053604841232299805,
+      "min_time": 0.053604841232299805,
+      "max_time": 0.053604841232299805
+    },
+    "calculate_fibonacci": {
+      "call_count": 67,
+      "total_time": 0.0018415451049804688,
+      "min_time": 2.6226043701171875e-06,
+      "max_time": 0.0003714561462402344
+    },
+    "process_data": {
+      "call_count": 1,
+      "total_time": 0.05295157432556152,
+      "min_time": 0.05295157432556152,
+      "max_time": 0.05295157432556152
+    },
+    "transform_item": {
+      "call_count": 5,
+      "total_time": 0.052701711654663086,
+      "min_time": 0.01028585433959961,
+      "max_time": 0.010947704315185547
+    },
+    "analyze_numbers": {
+      "call_count": 1,
+      "total_time": 0.00014734268188476562,
+      "min_time": 0.00014734268188476562,
+      "max_time": 0.00014734268188476562
+    },
+    "calculate_std_dev": {
+      "call_count": 1,
+      "total_time": 0.00010418891906738281,
+      "min_time": 0.00010418891906738281,
+      "max_time": 0.00010418891906738281
+    },
+    "stop": {
+      "call_count": 1,
+      "total_time": 0,
+      "min_time": Infinity,
+      "max_time": 0
+    }
+  },
+  "duration": 0.06365370750427246
+}

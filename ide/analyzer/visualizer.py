@@ -711,3 +711,304 @@ class Visualizer:
                 
         except Exception as e:
             print(f"Error adding AI modal: {e}")
+    
+    def render_with_trace_overlay(self, graph: CallGraph, trace_data: dict, 
+                                   ai_explanations: dict = None,
+                                   output_filename: str = "traced_flow.html") -> str:
+        """
+        Render graph with execution trace overlay
+        
+        Args:
+            graph: CallGraph to visualize
+            trace_data: Trace data with 'stats' and 'events'
+            ai_explanations: Optional AI explanations
+            output_filename: Name of output HTML file
+            
+        Returns:
+            Path to generated HTML file
+        """
+        output_path = self.output_dir / output_filename
+        
+        # Extract trace statistics
+        trace_stats = trace_data.get('stats', {})
+        trace_events = trace_data.get('events', [])
+        
+        # Calculate performance percentiles for color coding
+        all_avg_times = []
+        for func_name, stats in trace_stats.items():
+            if stats.get('call_count', 0) > 0:
+                avg_time = stats['total_time'] / stats['call_count']
+                all_avg_times.append(avg_time)
+        
+        all_avg_times.sort()
+        if all_avg_times:
+            p50 = all_avg_times[len(all_avg_times) // 2] if len(all_avg_times) > 0 else 0.001
+            p90 = all_avg_times[int(len(all_avg_times) * 0.9)] if len(all_avg_times) > 1 else 0.01
+        else:
+            p50, p90 = 0.001, 0.01
+        
+        # Create PyVis network
+        net = Network(
+            height="800px",
+            width="100%",
+            bgcolor="#2B2B2B",
+            font_color="#A9B7C6",
+            directed=True
+        )
+        
+        # Configure physics
+        net.set_options("""
+        {
+          "physics": {
+            "forceAtlas2Based": {
+              "gravitationalConstant": -80,
+              "centralGravity": 0.015,
+              "springLength": 150,
+              "springConstant": 0.08
+            },
+            "maxVelocity": 50,
+            "solver": "forceAtlas2Based",
+            "timestep": 0.35,
+            "stabilization": {"iterations": 200}
+          },
+          "nodes": {
+            "font": {
+              "size": 16,
+              "color": "#A9B7C6",
+              "face": "Consolas"
+            },
+            "borderWidth": 3,
+            "borderWidthSelected": 4
+          },
+          "edges": {
+            "arrows": {
+              "to": {
+                "enabled": true,
+                "scaleFactor": 1.2,
+                "type": "arrow"
+              }
+            },
+            "color": {
+              "inherit": false,
+              "color": "#6A9FE0",
+              "highlight": "#8FC34B",
+              "hover": "#FFC66D"
+            },
+            "width": 2,
+            "smooth": {
+              "type": "cubicBezier",
+              "forceDirection": "horizontal",
+              "roundness": 0.5
+            }
+          },
+          "interaction": {
+            "hover": true,
+            "navigationButtons": true,
+            "keyboard": true
+          }
+        }
+        """)
+        
+        # Add nodes with performance-based coloring
+        for func_name, func_info in graph.nodes.items():
+            safe_name = sanitize_text(func_name)
+            safe_file = sanitize_text(os.path.basename(func_info.file))
+            
+            # Get trace statistics for this function
+            func_stats = trace_stats.get(func_name, {})
+            call_count = func_stats.get('call_count', 0)
+            total_time = func_stats.get('total_time', 0)
+            avg_time = (total_time / call_count) if call_count > 0 else 0
+            
+            # Performance-based color coding
+            if call_count == 0:
+                # Not executed - gray
+                color = "#555555"
+                border_color = "#777777"
+            elif avg_time < p50:
+                # Fast - green
+                color = "#6A8759"
+                border_color = "#8FC34B"
+            elif avg_time < p90:
+                # Medium - orange
+                color = "#CC7832"
+                border_color = "#FFC66D"
+            else:
+                # Slow - red
+                color = "#BC3F3C"
+                border_color = "#FF6B6B"
+            
+            # Build enhanced tooltip with trace data
+            signature = sanitize_text(func_info.signature or "()")
+            doc_preview = sanitize_text((func_info.docstring or "").strip().replace('\n', ' '))
+            if len(doc_preview) > 100:
+                doc_preview = doc_preview[:100] + "..."
+            
+            # Performance metrics
+            perf_section = ""
+            if call_count > 0:
+                min_time = func_stats.get('min_time', 0) * 1000  # to ms
+                max_time = func_stats.get('max_time', 0) * 1000
+                avg_time_ms = avg_time * 1000
+                total_time_ms = total_time * 1000
+                
+                perf_section = f"""
+                <div style='margin-top:8px;padding:8px;background:#1E1E1E;border-left:3px solid {border_color};border-radius:3px;'>
+                    <strong style='color:{border_color};'>⚡ Execution Trace</strong><br>
+                    <span style='color:#808080;'>Calls:</span> <strong>{call_count}</strong><br>
+                    <span style='color:#808080;'>Total:</span> {total_time_ms:.2f}ms<br>
+                    <span style='color:#808080;'>Avg:</span> {avg_time_ms:.3f}ms<br>
+                    <span style='color:#808080;'>Min:</span> {min_time:.3f}ms | <span style='color:#808080;'>Max:</span> {max_time:.3f}ms
+                </div>
+                """
+            else:
+                perf_section = """
+                <div style='margin-top:8px;padding:8px;background:#1E1E1E;border-left:3px solid #555555;border-radius:3px;'>
+                    <span style='color:#808080;'>⚠️ Not executed in trace</span>
+                </div>
+                """
+            
+            # AI explanation indicator
+            ai_indicator = ""
+            if ai_explanations and func_name in ai_explanations:
+                ai_indicator = "<br><small style='color:#6A8759;'>🤖 AI Explanation Available</small>"
+            
+            async_badge = "<span style='color:#6A8759;'>async</span>" if func_info.is_async else ""
+            class_line = (
+                f"<span style='color:#808080;'>Class:</span> {sanitize_text(func_info.class_name)}<br>"
+                if func_info.class_name else ""
+            )
+            
+            tooltip = (
+                f"<div style='font-family:Consolas,monospace;font-size:12px;color:#A9B7C6;'>"
+                f"<strong style='color:#6A8759;'>{safe_name}{signature}</strong> {async_badge}<br>"
+                f"<span style='color:#808080;'>File:</span> {safe_file}:{func_info.line}<br>"
+                f"{class_line}"
+                f"<span style='color:#808080;'>LOC:</span> {func_info.loc or 0}<br>"
+                f"<span style='color:#808080;'>Docstring:</span> {doc_preview or '—'}"
+                f"{perf_section}"
+                f"{ai_indicator}"
+                f"</div>"
+            )
+            
+            # Size based on call count (with minimum size)
+            node_size = 20 + min(call_count * 2, 50)
+            
+            net.add_node(
+                safe_name,
+                label=safe_name,
+                title=tooltip,
+                color={'background': color, 'border': border_color},
+                size=node_size,
+                borderWidth=3
+            )
+        
+        # Add edges (could enhance with execution frequency if needed)
+        for from_func, to_funcs in graph.edges.items():
+            safe_from = sanitize_text(from_func)
+            for to_func in to_funcs:
+                safe_to = sanitize_text(to_func)
+                if safe_to in [sanitize_text(n) for n in graph.nodes.keys()]:
+                    net.add_edge(safe_from, safe_to)
+        
+        # Generate HTML
+        net.save_graph(str(output_path))
+        
+        # Add trace overlay enhancements
+        self._add_trace_overlay_ui(output_path, trace_stats, trace_events)
+        
+        # Add AI modal if explanations provided
+        if ai_explanations:
+            explanations_js = {sanitize_text(k): v for k, v in ai_explanations.items()}
+            self._add_ai_modal(output_path, explanations_js, graph)
+        
+        print(f"Trace-enhanced visualization saved to: {output_path}")
+        return str(output_path)
+    
+    def _add_trace_overlay_ui(self, html_path: Path, stats: dict, events: list):
+        """Add trace statistics panel and legend to visualization"""
+        try:
+            import json
+            
+            with open(html_path, 'r', encoding='utf-8') as f:
+                html = f.read()
+            
+            # Calculate totals
+            total_calls = sum(s.get('call_count', 0) for s in stats.values())
+            total_time = sum(s.get('total_time', 0) for s in stats.values()) * 1000  # to ms
+            functions_executed = sum(1 for s in stats.values() if s.get('call_count', 0) > 0)
+            
+            # Top 5 slowest functions
+            top_slow = sorted(
+                [(name, s) for name, s in stats.items() if s.get('call_count', 0) > 0],
+                key=lambda x: x[1]['total_time'],
+                reverse=True
+            )[:5]
+            
+            top_slow_html = ""
+            for func_name, func_stats in top_slow:
+                time_ms = func_stats['total_time'] * 1000
+                calls = func_stats['call_count']
+                top_slow_html += f"<div style='padding:4px;margin:2px 0;background:#1E1E1E;border-radius:3px;'><small>{sanitize_text(func_name)[:25]}: {time_ms:.1f}ms ({calls} calls)</small></div>"
+            
+            overlay_html = f"""
+            <div id="trace-stats-panel" style="
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                background: linear-gradient(135deg, #2B2B2B 0%, #1E1E1E 100%);
+                color: #A9B7C6;
+                padding: 15px;
+                border-radius: 8px;
+                border: 2px solid #6A8759;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.7), 0 0 10px rgba(106,143,89,0.2);
+                z-index: 1000;
+                min-width: 250px;
+                font-family: 'Segoe UI', Consolas, monospace;
+                font-size: 13px;
+            ">
+                <h3 style="margin: 0 0 12px 0; color: #6A8759; font-size: 16px;">⚡ Trace Statistics</h3>
+                <div style="margin-bottom: 10px;">
+                    <strong>Total Events:</strong> {len(events)}<br>
+                    <strong>Functions Executed:</strong> {functions_executed}<br>
+                    <strong>Total Calls:</strong> {total_calls}<br>
+                    <strong>Total Time:</strong> {total_time:.2f}ms
+                </div>
+                
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #555;">
+                    <strong style="color: #CC7832;">Top Time Consumers:</strong>
+                    {top_slow_html}
+                </div>
+            </div>
+            
+            <div id="trace-legend" style="
+                position: fixed;
+                bottom: 10px;
+                left: 10px;
+                background: linear-gradient(135deg, #2B2B2B 0%, #1E1E1E 100%);
+                color: #A9B7C6;
+                padding: 12px 15px;
+                border-radius: 8px;
+                border: 2px solid #6A8759;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+                z-index: 1000;
+                font-family: 'Segoe UI', Consolas, monospace;
+                font-size: 12px;
+            ">
+                <strong style="color: #6A8759;">Performance Legend:</strong><br>
+                <div style="margin-top: 6px;">
+                    <span style="display:inline-block;width:12px;height:12px;background:#6A8759;border-radius:50%;margin-right:6px;"></span>Fast (p50)<br>
+                    <span style="display:inline-block;width:12px;height:12px;background:#CC7832;border-radius:50%;margin-right:6px;"></span>Medium (p50-p90)<br>
+                    <span style="display:inline-block;width:12px;height:12px;background:#BC3F3C;border-radius:50%;margin-right:6px;"></span>Slow (p90+)<br>
+                    <span style="display:inline-block;width:12px;height:12px;background:#555555;border-radius:50%;margin-right:6px;"></span>Not executed
+                </div>
+            </div>
+            """
+            
+            html = html.replace('<body>', '<body>' + overlay_html)
+            
+            with open(html_path, 'w', encoding='utf-8') as f:
+                f.write(html)
+                
+        except Exception as e:
+            print(f"Error adding trace overlay UI: {e}")
