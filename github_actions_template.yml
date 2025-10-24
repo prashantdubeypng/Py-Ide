@@ -1,0 +1,39 @@
+# GitHub Actions CI/CD Template
+# This is an optional workflow file for automated builds
+# To use: Create .github/workflows/build.yml in your repo
+
+name: Build Py-IDE
+
+on:
+  push:
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Build executable
+      run: |
+        pyinstaller --noconfirm --onefile --windowed --name=Py-IDE --add-data "version.json;." main.py
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/Py-IDE.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

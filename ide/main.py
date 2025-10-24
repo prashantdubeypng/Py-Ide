@@ -5,13 +5,16 @@ Modular, high-performance architecture with threading and persistence
 import sys
 import os
 import time
+import json
+import requests
+import threading
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QTabWidget, QToolBar, QAction, QFileDialog, QMessageBox,
     QStatusBar, QLabel, QToolButton, QApplication, QTextBrowser
 )
 from PyQt5.QtGui import QFont
-from PyQt5.QtCore import Qt, QTimer, QProcess, QUrl
+from PyQt5.QtCore import Qt, QTimer, QProcess, QProcessEnvironment, QUrl
 
 # Import modular components
 from ide.editor import CodeEditor, PythonHighlighter, LintHighlighter
@@ -160,6 +163,9 @@ class IDE(QMainWindow):
         self.ai_code_assistant = AICodeAssistant(self.ai_chat_panel.ai_manager)
         
         logger.info("IDE initialized successfully")
+        
+        # Check for updates on startup (after UI is loaded)
+        QTimer.singleShot(2000, self.check_for_updates_on_startup)
     
     def create_navbar(self):
         """Create vertical navigation bar"""
@@ -417,9 +423,19 @@ class IDE(QMainWindow):
         # Help menu
         help_menu = menubar.addMenu("Help")
         
+        check_updates_action = QAction("🔄 Check for Updates", self)
+        check_updates_action.triggered.connect(self.check_for_updates_manual)
+        help_menu.addAction(check_updates_action)
+        
+        view_changelog_action = QAction("📝 View Changelog", self)
+        view_changelog_action.triggered.connect(self.view_changelog)
+        help_menu.addAction(view_changelog_action)
+        
+        help_menu.addSeparator()
+        
         about_action = QAction("About", self)
         about_action.triggered.connect(lambda: QMessageBox.about(self, "About", 
-            "Py-IDE\nModular Architecture with Advanced Features"))
+            "Py-IDE\nModular Architecture with Advanced Features\n\nVersion: " + self.get_current_version()))
         help_menu.addAction(about_action)
     
     def create_toolbar(self):
@@ -511,6 +527,64 @@ class IDE(QMainWindow):
     def get_current_editor(self):
         """Get currently active editor"""
         return self.tab_widget.currentWidget()
+    
+    def _find_python_interpreter(self):
+        """Find Python interpreter (works in both dev and packaged exe)"""
+        import shutil
+        
+        # If running as script (not packaged), use current Python
+        if not getattr(sys, 'frozen', False):
+            return sys.executable
+        
+        # When packaged, try multiple methods to find Python
+        
+        # 1. Check environment variable
+        python_path = os.environ.get('PYTHON_PATH')
+        if python_path and os.path.exists(python_path):
+            return python_path
+        
+        # 2. Try to find python in PATH
+        python_exe = shutil.which('python')
+        if python_exe:
+            return python_exe
+        
+        # 3. Try py launcher (Windows)
+        py_exe = shutil.which('py')
+        if py_exe:
+            return py_exe
+        
+        # 4. Try common Python installation paths on Windows
+        if sys.platform == 'win32':
+            common_paths = [
+                os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Programs', 'Python'),
+                'C:\\Python39',
+                'C:\\Python38',
+                'C:\\Python37',
+                'C:\\Python310',
+                'C:\\Python311',
+                'C:\\Python312',
+            ]
+            
+            for base_path in common_paths:
+                if os.path.exists(base_path):
+                    python_exe = os.path.join(base_path, 'python.exe')
+                    if os.path.exists(python_exe):
+                        return python_exe
+                    # Check Scripts folder too
+                    for root, dirs, files in os.walk(base_path):
+                        if 'python.exe' in files:
+                            return os.path.join(root, 'python.exe')
+        
+        # 5. Try Unix/Linux common paths
+        if sys.platform in ['linux', 'darwin']:
+            common_paths = ['/usr/bin/python3', '/usr/bin/python', '/usr/local/bin/python3']
+            for path in common_paths:
+                if os.path.exists(path):
+                    return path
+        
+        # Not found
+        logger.error("Python interpreter not found")
+        return None
     
     def update_cursor_position(self):
         """Update cursor position in status bar"""
@@ -836,22 +910,40 @@ class IDE(QMainWindow):
             self.process.kill()
             self.terminal.output.append("<span style='color:#BC3F3C;'>Previous process terminated.</span>")
         
+        # Find Python interpreter
+        python_exe = self._find_python_interpreter()
+        if not python_exe:
+            self.terminal.output.append("<span style='color:#BC3F3C;'>❌ Error: Python interpreter not found!</span>")
+            self.terminal.output.append("<span style='color:#A9B7C6;'>Please install Python or set PYTHON_PATH environment variable.</span>")
+            return
+        
+        # Set environment to ensure UTF-8 output
+        env = QProcessEnvironment.systemEnvironment()
+        env.insert("PYTHONIOENCODING", "utf-8")
+        self.process.setProcessEnvironment(env)
+        
         # Start new process
-        self.process.start(sys.executable, ["-c", code])
+        self.process.start(python_exe, ["-c", code])
         self.process.setWorkingDirectory(self.project_dir)
         self.statusBar().showMessage("Running code...")
-        logger.info("Running code execution (QProcess)")
+        logger.info(f"Running code execution (QProcess) using: {python_exe}")
     
     def handle_stdout(self):
         """Handle stdout from process"""
-        data = self.process.readAllStandardOutput().data().decode()
+        try:
+            data = self.process.readAllStandardOutput().data().decode('utf-8', errors='replace')
+        except Exception as e:
+            data = self.process.readAllStandardOutput().data().decode('latin-1', errors='replace')
         safe = data.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
         self.terminal.output.insertHtml(f"<span style='color:#A9B7C6;'>{safe}</span>")
         self.terminal.output.moveCursor(self.terminal.output.textCursor().End)
     
     def handle_stderr(self):
         """Handle stderr from process"""
-        data = self.process.readAllStandardError().data().decode()
+        try:
+            data = self.process.readAllStandardError().data().decode('utf-8', errors='replace')
+        except Exception as e:
+            data = self.process.readAllStandardError().data().decode('latin-1', errors='replace')
         safe = data.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>")
         self.terminal.output.insertHtml(f"<span style='color:#BC3F3C;'>{safe}</span>")
         self.terminal.output.moveCursor(self.terminal.output.textCursor().End)
@@ -1066,7 +1158,16 @@ class IDE(QMainWindow):
         self.terminal_tabs.setCurrentWidget(self.interactive_terminal)
         
         # Build command using interactive_runner.py wrapper for UTF-8 support
-        python_exe = sys.executable
+        python_exe = self._find_python_interpreter()
+        if not python_exe:
+            QMessageBox.critical(
+                self,
+                "Python Not Found",
+                "Python interpreter not found!\n\n"
+                "Please install Python or set the PYTHON_PATH environment variable."
+            )
+            return
+        
         wrapper_script = os.path.join(os.path.dirname(__file__), 'interactive_runner.py')
         
         # Check if wrapper exists
@@ -1154,14 +1255,24 @@ class IDE(QMainWindow):
             if not os.path.exists(runner_path):
                 raise FileNotFoundError(f"Traced runner not found: {runner_path}")
             
+            # Find Python interpreter
+            python_exe = self._find_python_interpreter()
+            if not python_exe:
+                raise RuntimeError("Python interpreter not found")
+            
             # Kill previous process if running
             if self.process.state() == QProcess.Running:
                 self.process.kill()
                 self.terminal.output.append("<span style='color:#BC3F3C;'>Previous process terminated.</span>")
             
+            # Set environment to ensure UTF-8 output
+            env = QProcessEnvironment.systemEnvironment()
+            env.insert("PYTHONIOENCODING", "utf-8")
+            self.process.setProcessEnvironment(env)
+            
             # Start traced execution
             args = [runner_path, self.current_file, "--output", trace_path]
-            self.process.start(sys.executable, args)
+            self.process.start(python_exe, args)
             self.process.setWorkingDirectory(os.path.dirname(self.current_file))
             
             # Store trace path for later visualization
@@ -1761,6 +1872,100 @@ Cache Hit Rate: {(ai_stats.get('cache_hits', 0) / max(ai_stats.get('total_reques
     
     # ==================== End AI Code Assistant Features ====================
     
+    # ==================== Auto-Update Features ====================
+    
+    def get_current_version(self):
+        """Get the current version from version.json"""
+        try:
+            version_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "version.json")
+            with open(version_file, 'r') as f:
+                return json.load(f)["version"]
+        except Exception as e:
+            logger.error(f"Failed to read version: {e}")
+            return "1.0.0"
+    
+    def check_for_updates(self, silent=True):
+        """
+        Check for updates from GitHub
+        
+        Args:
+            silent: If True, only show dialog when update is available
+        """
+        # Replace with your actual GitHub username
+        UPDATE_JSON_URL = "https://raw.githubusercontent.com/prashantdubeypng/Py-Ide/main/update.json"
+        
+        try:
+            response = requests.get(UPDATE_JSON_URL, timeout=5)
+            response.raise_for_status()
+            remote = response.json()
+            
+            current_version = self.get_current_version()
+            latest_version = remote["latest_version"]
+            
+            if latest_version != current_version:
+                changelog = remote.get("changelog", "No changelog provided.")
+                download_url = remote["download_url"]
+                
+                self.show_update_prompt(latest_version, changelog, download_url)
+            elif not silent:
+                QMessageBox.information(self, "No Updates", 
+                    f"You are running the latest version ({current_version}).")
+        except Exception as e:
+            if not silent:
+                QMessageBox.warning(self, "Update Check Failed", 
+                    f"Could not check for updates:\n{str(e)}")
+            logger.error(f"Update check failed: {e}")
+    
+    def check_for_updates_manual(self):
+        """Manual update check triggered from menu"""
+        self.check_for_updates(silent=False)
+    
+    def show_update_prompt(self, latest_version, changelog, download_url):
+        """Show update available dialog"""
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Update Available")
+        msg.setIcon(QMessageBox.Information)
+        msg.setText(f"🎉 A new version ({latest_version}) is available!")
+        msg.setInformativeText(f"<b>What's New:</b><br>{changelog.replace(chr(10), '<br>')}")
+        msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msg.button(QMessageBox.Ok).setText("Update Now")
+        msg.button(QMessageBox.Cancel).setText("Later")
+        
+        if msg.exec_() == QMessageBox.Ok:
+            from ide.updater import run_updater
+            run_updater(download_url)
+    
+    def view_changelog(self):
+        """View changelog from GitHub"""
+        UPDATE_JSON_URL = "https://raw.githubusercontent.com/prashantdubeypng/Py-Ide/main/update.json"
+        
+        try:
+            response = requests.get(UPDATE_JSON_URL, timeout=5)
+            response.raise_for_status()
+            data = response.json()
+            
+            changelog = data.get("changelog", "No changelog available.")
+            version = data.get("latest_version", "Unknown")
+            
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Py-IDE Changelog")
+            msg.setText(f"<b>Latest Version: {version}</b>")
+            msg.setInformativeText(f"{changelog.replace(chr(10), '<br>')}")
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Could not fetch changelog:\n{str(e)}")
+    
+    def check_for_updates_on_startup(self):
+        """Background update check on startup"""
+        def bg_check():
+            time.sleep(2)  # Wait for UI to load
+            self.check_for_updates(silent=True)
+        
+        threading.Thread(target=bg_check, daemon=True).start()
+    
+    # ==================== End Auto-Update Features ====================
+    
     def closeEvent(self, event):
         """Handle window close"""
         # Save window geometry
@@ -1774,11 +1979,38 @@ Cache Hit Rate: {(ai_stats.get('cache_hits', 0) / max(ai_stats.get('total_reques
 
 def main():
     """Main entry point"""
+    import json
+    from ide.splash_screen import show_splash
+    from ide.utils import resource_path
+    
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     
+    # Get version from version.json
+    try:
+        version_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "version.json")
+        with open(version_file, 'r') as f:
+            version = json.load(f)["version"]
+    except Exception:
+        version = "1.0.0"
+    
+    # Show splash screen with icon
+    icon_path = resource_path("assets/py-ide icon.png")
+    if not os.path.exists(icon_path):
+        # Fallback to any icon in assets
+        icon_path = resource_path("assets/icon.png")
+    
+    splash = show_splash(icon_path, version, duration=2000)  # 2 seconds
+    
+    # Create and show IDE after splash is visible
     ide = IDE()
-    ide.show()
+    
+    # Close splash and show IDE after 2 seconds
+    def show_ide():
+        splash.finish(ide)  # Close splash with fade effect
+        ide.show()
+    
+    QTimer.singleShot(2000, show_ide)
     
     sys.exit(app.exec_())
 

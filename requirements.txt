@@ -1,0 +1,27 @@
+# Py-IDE Requirements
+# Core dependencies for the IDE
+
+# UI Framework
+PyQt5>=5.15.0
+
+# Code execution and analysis
+astroid>=2.15.0
+pylint>=2.17.0
+
+# AI Integration
+openai>=1.0.0
+anthropic>=0.18.0
+google-generativeai>=0.3.0
+requests>=2.31.0
+
+# Terminal support (optional, IDE will work without it)
+pywinpty>=2.0.0;platform_system=="Windows"
+
+# Build tool
+pyinstaller>=5.13.0
+
+# Icon conversion (optional, for creating .ico from .png)
+Pillow>=10.0.0
+
+# Other utilities
+Pygments>=2.15.0
